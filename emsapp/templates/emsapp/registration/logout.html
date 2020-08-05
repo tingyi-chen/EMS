@@ -1,0 +1,16 @@
+{% comment %} <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Equipment Management System</title>
+    </head>
+    <body>
+        <h2>Welcome to EMS</h2>
+        {% if request.user.is_authenticated %}
+            <p>{{request.user}} Already Logged In</p>
+            <a href="/equipmentlist/">Equipment List</a>
+            <a href="/accounts/logout/">Click to log out</a>
+        {% else %}
+            <p><a href="/accounts/login/">Click to log in</a></p>
+        {% endif %}
+    </body>
+</html> {% endcomment %}

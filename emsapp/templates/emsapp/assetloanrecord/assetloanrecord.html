@@ -1,0 +1,275 @@
+{% extends '../base.html' %}
+
+{% block title %}Asset Loan List{% endblock %}
+
+{% block content %}
+
+<div class="wrapper d-flex align-items-stretch">
+    <nav id="sidebar">
+        <div class="p-4">
+            <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
+                <i class="fas fa-warehouse mr-4"></i>EMS
+            </a>
+            <ul class="list-unstyled components mb-5">
+              <li class="nav-item">
+                <a class="nav-link" href="/emsapp/home/asset">
+                  <i class="fas fa-eye pr-3"></i>Overview
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/emsapp/equipmentlist">
+                  <i class="fas fa-cog pr-3"></i>Equipments
+                </a>
+              </li>
+              <li class="nav-item active font-weight-bold">
+                <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                  <i class="fas fa-th-list pr-3"></i></i>Ticket Records
+                </a>
+                <ul class="pl-3 collapse list-unstyled" id="homeSubmenu">
+                  <li>
+                    <a class="nav-link font-weight-bold" href="/emsapp/assetloanrecord">
+                      <i class="fas fa-money-check-alt pr-3"></i>A. Loan
+                    </a>
+                  </li>
+                  <li>
+                    <a class="nav-link font-weight-light" href="/emsapp/toolingcalibrationrecord">
+                      <i class="fas fa-wrench pr-3"></i>T. Calibration
+                    </a>
+                  </li>
+                  <li>
+                    <a class="nav-link font-weight-light" href="/emsapp/nonstocktransactionrecord">
+                      <i class="fas fa-archive pr-3"></i>N.S. Trans
+                    </a>
+                  </li>
+                  <li>
+                    <a class="nav-link font-weight-light" href="/emsapp/transactionrecord">
+                      <i class="fas fa-cube pr-3"></i>Trans
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              {% if perms.emsapp.add_equipmentlist and perms.emsapp.add_assetloanrecord and perms.emsapp.add_toolingcalibrationrecord and perms.emsapp.add_nonstocktransactionrecord%}
+              <li class="nav-item">
+                <a href="#select-multi-menu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                  <i class="fas fa-check-double pr-3"></i>Select Multi
+                </a>
+                <ul class="pl-3 collapse list-unstyled" id="select-multi-menu">
+                  <li>
+                    <a href="/emsapp/equipmentlist/asset/check" id="e-calicheck-button">
+                      <i class="fas fa-arrow-alt-circle-right pr-3"></i>Loan
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/emsapp/equipmentlist/tool/check">
+                      <i class="fas fa-tools pr-3"></i>Calib
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/emsapp/equipmentlist/nonstock/check">
+                      <i class="fas fa-truck pr-3"></i>N.S. Trans
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/emsapp/equipmentlist/trans/check/0">
+                      <i class="fas fa-exchange-alt pr-3"></i>Trans
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              {% endif %}
+              <li>
+                <a href="/emsapp/trashbin/equipment">
+                  <i class="fas fa-dumpster pr-3"></i>Trash Bin
+                </a>
+              </li>
+            </ul>
+        </div>
+    </nav>
+            {% comment %} <div class="btn-group mr-2 px-3" role="group" aria-label="First group">
+                <button onclick="location.href='/emsapp/toolingcalibrationrecord/form'" id="t-calibrate-button" type="button" class="btn btn-amber">
+                    <i class="fas fa-plus pr-2"></i>Calibrate
+                </button>
+            </div> {% endcomment %}
+    <div id="content" class="teal lighten-5">
+        <nav class="navbar navbar-expand-lg navbar-dark mdb-color darken-3 mb-0">
+            <div class="container">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <button onclick="location.href='/emsapp/assetloanrecord/search'" type="button" class="btn btn-white ml-auto mx-3 px-4 py-2">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <ul class="navbar-nav nav-flex-icons">
+                        <li class="nav-item white-text my-auto">
+                            <span>Hello, {{ user }}</span>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-333" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right dropdown-default"
+                            aria-labelledby="navbarDropdownMenuLink-333">
+                            <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                            <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7 mt-3">
+                <h3 class="ml-auto my-3 font-weight-bold">Asset Dashboard</h3>
+                </div>
+                <div class="col-md-12 p-3">
+                    <div class="card">
+                        <div class="card-body card-body-cascade">
+                            <div class="row">
+                                <div class="col-md-7 my-auto">
+                                    <h5 class="ml-auto my-auto font-weight-bold">Asset Loan Record</h5>
+                                </div>
+                                <div class="col-md-5 d-flex justify-content-end">
+                                    {% if perms.emsapp.delete_assetloanrecord and perms.emsapp.change_assetloanrecord and perms.emsapp.add_assetloanrecord %}
+                                    <div class="btn-group ml-auto" role="group" aria-label="First group">
+                                        <form action="/emsapp/assetloanrecord/import/" class="mb-0" method="post" id="import-form" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <label for="import" class="mx-auto btn btn-indigo px-3 py-2">
+                                                <i class="fas fa-bolt pr-2" aria-hidden="true"></i>Import
+                                            </label>
+                                            <input type="file" id="import" name="import" style="display: none;">
+                                        </form>
+                                    </div>
+                                    <div class="btn-group ml-3" role="group" aria-label="Second group">
+                                        <button onclick="location.href='/emsapp/assetloanrecord/export'" id="a-export-modal" type="button" class="btn btn-blue px-3 py-2">
+                                            <i class="fas fa-rocket pr-2" aria-hidden="true"></i>Export
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-3 table-responsive">
+                            <table id="a-table" class="table table-hover" width="100%">
+                                <thead class="blue-grey darken-2 text-white">
+                                    <tr>
+                                        <th scope="col th-sm">#</th>
+                                        <th scope="col th-sm">AssetNo</th>
+                                        <th scope="col th-sm">Location</th>
+                                        <th scope="col th-sm">LoanReason</th>
+                                        <th scope="col th-sm">LoanStartTime</th>
+                                        <th scope="col th-sm">LoanEndTime</th>
+                                        <th scope="col th-sm">Borrower</th>
+                                        <th scope="col th-sm">Det.</th>
+                                        {% if perms.emsapp.delete_assetloanrecord and perms.emsapp.change_assetloanrecord and perms.emsapp.add_assetloanrecord %}
+                                        {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
+                                        <th scope="col th-sm">Edi.</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody id="item-lists">
+                                {% if assetloan_record %}
+                                {% for asset in assetloan_record %}
+                                <tr>
+                                <th scope="row" class="align-middle">{{ asset.TicketNo }}</th>
+                                    <td class="align-middle">{{ asset.AssetNo }}</td>
+                                    <td class="align-middle">{{ asset.Location }}</td>
+                                    <td class="align-middle">{{ asset.LoanReason }}</td>
+                                    <td class="align-middle">{{ asset.LoanStartTime }}</td>
+                                    <td class="align-middle">{{ asset.LoanEndTime }}</td>
+                                    <td class="align-middle">{{ asset.Borrower }}</td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:assetLoanDetail' asset.TicketNo %}">
+                                            <i class="fas fa-file-alt"></i>
+                                        </a>
+                                    </td>
+                                    {% if perms.emsapp.delete_assetloanrecord and perms.emsapp.change_assetloanrecord and perms.emsapp.add_assetloanrecord %}
+                                    {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:assetLoanUpdate' asset.TicketNo %}">
+                                            <i class="fas fa-pen-square"></i>
+                                        </a>
+                                        <a href="{% url 'emsapp:assetLoanDelete' asset.TicketNo %}">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                                {% elif qs %}
+                                {% for q in qs %}
+                                <tr>
+                                <th scope="row" class="align-middle">{{ q.TicketNo }}</th>
+                                    <td class="align-middle">{{ q.AssetNo }}</td>
+                                    <td class="align-middle">{{ q.Location }}</td>
+                                    <td class="align-middle">{{ q.LoanReason }}</td>
+                                    <td class="align-middle">{{ q.LoanStartTime }}</td>
+                                    <td class="align-middle">{{ q.LoanEndTime }}</td>
+                                    <td class="align-middle">{{ q.Borrower }}</td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:assetLoanDetail' q.TicketNo %}">
+                                            <i class="fas fa-file-alt"></i>
+                                        </a>
+                                    </td>
+                                    {% if perms.emsapp.delete_equipmentlist and perms.emsapp.change_equipmentlist and perms.emsapp.add_equipmentlist %}
+                                    {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:assetLoanUpdate' q.TicketNo %}">
+                                            <i class="fas fa-pen-square"></i>
+                                        </a>
+                                        <a href="{% url 'emsapp:assetLoanDelete' q.TicketNo %}">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                                {% elif data_list %}
+                                {% for data in data_list %}
+                                <tr>
+                                <th scope="row" class="align-middle">{{ form.TicketNo }}</th>
+                                    <td class="align-middle">{{ form.EquipmentNo }}</td>
+                                    <td class="align-middle">{{ form.AssetNo }}</td>
+                                    <td class="align-middle">{{ form.LoanReason }}</td>
+                                    <td class="align-middle">{{ form.LoanStartTime }}</td>
+                                    <td class="align-middle">{{ form.LoanEndTime }}</td>
+                                    <td class="align-middle">{{ form.Borrower }}</td>
+                                    {% comment %} <td>
+                                        <a href="{% url 'emsapp:assetLoanDetail' data.detail.TicketNo %}">
+                                            <i class="fas fa-file-alt"></i>
+                                        </a>
+                                    </td>
+                                    {% if perms.emsapp.delete_assetloanrecord and perms.emsapp.change_assetloanrecord and perms.emsapp.add_assetloanrecord %}
+                                    <td>
+                                        <a href="{% url 'emsapp:assetLoanUpdate' data.detail.TicketNo %}">
+                                            <i class="fas fa-pen-square"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'emsapp:assetLoanDelete' data.detail.TicketNo %}">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                    {% endif %} {% endcomment %}
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#a-table').DataTable({
+            "pagingType": "simple_numbers"
+        });
+    });
+</script>
+{% endblock %}

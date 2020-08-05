@@ -1,0 +1,39 @@
+{% extends './base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div id="container" style="width: 75%;">
+  <canvas id="pie-chart"></canvas>
+</div>
+{% if user.is_authenticated %}
+<div class="jumbotron text-center">
+  <h1 class='display-4 text-uppercase'>Hi {{ user.username }}!</h2>
+</div>
+<div class="container">
+  <div class="row justify-content-md-center">
+    <div class="col-md-6 text-center">
+      <button type="submit" class="btn btn-success">
+        <a href="../equipmentlist">EMS Sys - Equipment List</a>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="container mt-4">
+  <div class="row justify-content-md-center">
+    <div class="col-md-6 text-center">
+      <button type="submit" class="btn btn-secondary">
+        <a href="{% url 'emsapp:logout' %}">logout</a>
+      </button>
+    </div>
+  </div>
+</div>  
+{% else %}
+<div class="jumbotron text-center">
+  <h1 class="display-4">You are not logged in</h1>
+</div>
+<div class='text-center'>
+  <a class="btn btn-primary btn-lg mx-auto" href="{% url 'emsapp:login' %}">login</a>
+</div>
+{% endif %}
+{% endblock %}

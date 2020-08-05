@@ -1,0 +1,61 @@
+{% extends '../base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}Trans Search{% endblock %}
+
+{% block content %}
+<div class="modal fade" id="tr-search-modal" tabindex="-1" role="dialog" aria-labelledby="Create" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <form id="tr-search-form" class="mb-0" method="GET" action="/emsapp/transactionrecord/search/">
+                <div class="modal-header pink">
+                    <h5 class="modal-title text-white" id="create-label">Search</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" onclick="location.href='/emsapp/equipmentlist'">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="col-sm-4">
+                            <label for="message-text" class="col-form-label">Trans No</label>
+                            <input type="text" id="search-location" class="form-control" name="transNo" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                        <div class="col-sm-4">
+                            <label for="message-text" class="col-form-label">Trans From</label>
+                            <input type="text" id="search-owner-name" class="form-control" name="transFrom" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            <label for="message-text" class="col-form-label">Trans Req User</label>
+                            <input type="text" id="search-location" class="form-control" name="transReqUser" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                        <div class="col-sm-4">
+                            <label for="message-text" class="col-form-label">Trans To</label>
+                            <input type="text" id="search-loan-vendor" class="form-control" name="transTo" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            <label for="message-text" class="col-form-label">Truck Type</label>
+                            <input type="text" id="search-location" class="form-control" name="truckType" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-pink">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% include './transactionrecord.html'%}
+
+{% endblock%}
+
+{% block js%}
+<script type='text/javascript'>
+$(document).ready(function(e) {
+    $('#tr-search-modal').modal('show');
+    $('#tr-search-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/transactionrecord';
+    });
+});
+</script>
+
+{% endblock %}

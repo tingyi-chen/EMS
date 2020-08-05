@@ -1,0 +1,66 @@
+{% extends '../base.html' %}
+
+{% load crispy_forms_tags %}
+{% load emsapp_extras %}
+
+{% block title %}Asset Loan Form{% endblock %}
+
+{% block content %}
+<div class="modal fade bd-example-modal-lg" id="a-loan-modal" tabindex="-1" role="dialog" aria-labelledby="Update" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <form id="a-post-form" method="post" novalidate>
+            {% comment %} csrf_token must be inside form {% endcomment %}
+            {% csrf_token %} 
+                <div class="modal-header default-color">
+                    <h5 class="modal-title text-white" id="create-label">Loan</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.AssetLoanTicketNo|tabindex:1|as_crispy_field }}
+                            {{ form.Location|tabindex:4|as_crispy_field }}
+                            {{ form.LoanStartTime|tabindex:7|as_crispy_field }}
+                            {{ form.LoanEndTime|tabindex:10|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.EquipmentNo|tabindex:2|as_crispy_field }}
+                            {{ form.Borrower|tabindex:5|as_crispy_field }}
+                            {{ form.LoanVendor|tabindex:8|as_crispy_field }}
+                            {{ form.Value|tabindex:11|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.AssetNo|tabindex:3|as_crispy_field }}
+                            {{ form.PhotoLink|tabindex:6|as_crispy_field }}
+                            {{ form.LoanReason|tabindex:9|as_crispy_field }}
+                            {{ form.AssetLoanDocument|tabindex:12|as_crispy_field }}
+                            {{ form.IsLongTermEvent|tabindex:15|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% include '../equipmentlist/equipmentlist.html' %}
+{% endblock %}
+
+{% block js%}
+<script>
+$(document).ready(function() {
+    $('#div_id_AssetLoanDocument').attr('style', 'height: 70px;');
+    $('#div_id_IsLongTermEvent').attr('style', 'height: 20px;');
+    $('#a-loan-modal').modal('show');
+    $('#a-loan-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/equipmentlist';
+    });
+})
+</script>
+{% endblock %}

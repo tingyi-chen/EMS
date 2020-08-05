@@ -1,0 +1,72 @@
+{% extends '../base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}Tooling Calibration Form{% endblock %}
+
+{% block content %}
+<div class="modal fade bd-example-modal-lg" id="t-cali-modal" tabindex="-1" role="dialog" aria-labelledby="Update" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <form id="t-post-form" method="post" novalidate>
+
+            {% comment %} csrf_token must be inside form {% endcomment %}
+            {% csrf_token %} 
+
+                <div class="modal-header amber">
+                    <h5 class="modal-title text-white" id="t-calibrate-label">Calibrate</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.CalibratedTicketNo|as_crispy_field }}
+                            {{ form.Name|as_crispy_field }}
+                            {{ form.ProdVendor|as_crispy_field }}
+                            {{ form.CalibratedTicketCreateDate|as_crispy_field }}
+                            {{ form.LastDueDate|as_crispy_field }}
+                            {{ form.UnitPrice|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.EquipmentNo|as_crispy_field }}
+                            {{ form.EnName|as_crispy_field }}
+                            {{ form.Location|as_crispy_field }}
+                            {{ form.CalibratedStartTime|as_crispy_field }}
+                            {{ form.NextDueDate|as_crispy_field }}
+                            {{ form.CalibratedCost|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.ToolingNo|as_crispy_field }}
+                            {{ form.ModuleNo|as_crispy_field }}
+                            {{ form.PhotoLink|as_crispy_field }}
+                            {{ form.CaliVendor|as_crispy_field }}
+                            {{ form.CalibratedReport|as_crispy_field }}
+                            {{ form.CalibratedEndTime|as_crispy_field }}
+                            {{ form.Comment|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="location.href='/emsapp/equipmentlist'" type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-amber">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% include '../equipmentlist/equipmentlist.html'%}
+{% endblock %}
+
+{% block js%}
+<script>
+$(document).ready(function() {
+    $('#div_id_CalibratedReport').attr('style', 'height: 70px')
+    $('#t-cali-modal').modal('show');
+    $('#t-cali-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/equipmentlist';
+    });
+})
+</script>
+{% endblock %}

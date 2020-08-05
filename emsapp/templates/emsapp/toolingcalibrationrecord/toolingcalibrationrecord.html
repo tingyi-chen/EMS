@@ -1,0 +1,353 @@
+{% extends '../base.html' %}
+
+{% block content %}
+
+<div class="wrapper d-flex align-items-stretch">
+    <nav id="sidebar">
+        <div class="p-4">
+            <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
+                <i class="fas fa-warehouse mr-4"></i>EMS
+            </a>
+            <ul class="list-unstyled components mb-5">
+              <li class="nav-item">
+                <a class="nav-link" href="/emsapp/home/asset">
+                  <i class="fas fa-eye pr-3"></i>Overview
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/emsapp/equipmentlist">
+                  <i class="fas fa-cog pr-3"></i>Equipments
+                </a>
+              </li>
+              <li class="nav-item active font-weight-bold">
+                <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                  <i class="fas fa-th-list pr-3"></i></i>Ticket Records
+                </a>
+                <ul class="pl-3 collapse list-unstyled" id="homeSubmenu">
+                  <li>
+                    <a class="nav-link font-weight-light" href="/emsapp/assetloanrecord">
+                      <i class="fas fa-money-check-alt pr-3"></i>A. Loan
+                    </a>
+                  </li>
+                  <li>
+                    <a class="nav-link font-weight-bold" href="/emsapp/toolingcalibrationrecord">
+                      <i class="fas fa-wrench pr-3"></i>T. Calibration
+                    </a>
+                  </li>
+                  <li>
+                    <a class="nav-link font-weight-light" href="/emsapp/nonstocktransactionrecord">
+                      <i class="fas fa-archive pr-3"></i>N.S. Trans
+                    </a>
+                  </li>
+                  <li>
+                    <a class="nav-link font-weight-light" href="/emsapp/transactionrecord">
+                      <i class="fas fa-cube pr-3"></i>Trans
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              {% if perms.emsapp.add_equipmentlist and perms.emsapp.add_assetloanrecord and perms.emsapp.add_toolingcalibrationrecord and perms.emsapp.add_nonstocktransactionrecord%}
+              <li class="nav-item">
+                <a href="#select-multi-menu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                  <i class="fas fa-check-double pr-3"></i>Select Multi
+                </a>
+                <ul class="pl-3 collapse list-unstyled" id="select-multi-menu">
+                  <li>
+                    <a href="/emsapp/equipmentlist/asset/check" id="e-calicheck-button">
+                      <i class="fas fa-arrow-alt-circle-right pr-3"></i>Loan
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/emsapp/equipmentlist/tool/check">
+                      <i class="fas fa-tools pr-3"></i>Calib
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/emsapp/equipmentlist/nonstock/check">
+                      <i class="fas fa-truck pr-3"></i>N.S. Trans
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/emsapp/equipmentlist/trans/check/0">
+                      <i class="fas fa-exchange-alt pr-3"></i>Trans
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              {% endif %}
+              <li>
+                <a href="/emsapp/trashbin/equipment">
+                  <i class="fas fa-dumpster pr-3"></i>Trash Bin
+                </a>
+              </li>
+            </ul>
+        </div>
+    </nav>
+            {% comment %} <div class="btn-group mr-2 px-3" role="group" aria-label="First group">
+                <button onclick="location.href='/emsapp/toolingcalibrationrecord/form'" id="t-calibrate-button" type="button" class="btn btn-amber">
+                    <i class="fas fa-plus pr-2"></i>Calibrate
+                </button>
+            </div> {% endcomment %}
+    <div id="content" class="teal lighten-5">
+        <nav class="navbar navbar-expand-lg navbar-dark mdb-color darken-3 mb-0">
+            <div class="container">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <button onclick="location.href='/emsapp/toolingcalibrationrecord/search'" type="button" class="btn btn-white ml-auto mx-3 px-4 py-2">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <ul class="navbar-nav nav-flex-icons">
+                        <li class="nav-item white-text my-auto">
+                            <span>Hello, {{ user }}</span>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-333" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right dropdown-default"
+                            aria-labelledby="navbarDropdownMenuLink-333">
+                            <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                            <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        {% comment %} <div class="container">
+            <div class="row">
+                <div class="col-md-12 my-3">
+                    <h4 class="ml-auto my-3 font-weight-bold">Tools Dashboard</h2>
+                </div>
+            </div>
+        </div> {% endcomment %}
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 mt-3">
+                    <h3 class="ml-auto my-3 font-weight-bold">Tool Dashboard</h3>
+                </div>
+                <div class="col-md-12 p-3">
+                    <div class="card">
+                        <div class="card-body card-body-cascade">
+                            <div class="row">
+                                <div class="col-md-8 my-auto">
+                                    <h5 class="ml-auto my-auto font-weight-bold">Tool Calibration Record</h5>
+                                </div>
+                                <div class="col-md-4 d-flex justify-content-end">
+                                    {% if perms.emsapp.delete_toolingcalibrationrecord and perms.emsapp.change_toolingcalibrationrecord and perms.emsapp.add_toolingcalibrationrecord %}
+                                    <div class="btn-group ml-auto" role="group" aria-label="First group">
+                                        <form action="/emsapp/toolingcalibrationrecord/import/" class="mb-0" method="post" id="import-form" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <label for="import" class="mx-auto btn btn-indigo py-2 px-3">
+                                                <i class="fas fa-bolt pr-2" aria-hidden="true"></i>Import
+                                            </label>
+                                            <input type="file" id="import" name="import" style="display: none;">
+                                        </form>
+                                    </div>
+                                    <div class="btn-group ml-3" role="group" aria-label="Third group">
+                                        {% comment %} change route here {% endcomment %}
+                                        <button onclick="location.href='/emsapp/toolingcalibrationrecord/export'" id="t-export-modal" type="button" class="btn btn-blue py-2 px-3">
+                                            <i class="fas fa-rocket pr-2" aria-hidden="true"></i>Export
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-3 table-responsive">
+                            <table id="t-table" class="table table-hover" width="100%">
+                                <thead class="blue-grey darken-2 text-white">
+                                    <tr>
+                                        {% comment %} change route here {% endcomment %}
+                                        <th scope="col th-sm">#</th>
+                                        <th scope="col th-sm">T. No</th>
+                                        <th scope="col th-sm">Name</th>
+                                        <th scope="col th-sm">Cali. Vendor</th>
+                                        <th scope="col th-sm">C. Start</th>
+                                        <th scope="col th-sm">C. End</th>
+                                        <th scope="col th-sm">MQ Start</th>
+                                        <th scope="col th-sm">MQ End</th>
+                                        <th scope="col th-sm">Location</th>
+                                        <th scope="col th-sm">Det.</th>
+                                        {% if perms.emsapp.delete_toolingcalibrationrecord and perms.emsapp.change_toolingcalibrationrecord and perms.emsapp.add_toolingcalibrationrecord %}
+                                        {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
+                                        <th scope="col th-sm">Edi.</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody id="item-lists">
+                                {% if toolingcalibration_record %}
+                                {% for tool in toolingcalibration_record %}
+                                <tr>
+                                <th scope="row" class="align-middle">{{ tool.TicketNo }}</th>
+                                    <td class="align-middle">{{ tool.ToolingNo }}</td>
+                                    <td class="align-middle">{{ tool.Name }}</td>
+                                    <td class="align-middle">{{ tool.CaliVendor }}</td>
+                                    <td class="align-middle">{{ tool.CalibratedStartTime }}</td>
+                                    {% if tool.CalibratedEndTime %}
+                                    <td class="align-middle">{{ tool.CalibratedEndTime }}</td>
+                                    {% elif perms.emsapp.change_toolingcalibrationrecord %}
+                                    <td class="align-middle">
+                                        <form action="/emsapp/toolingcalibrationrecord/{{ tool.TicketNo }}/form/" class="mb-0" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="date" class="{{ tool.ToolingNo }}" name="c-end-date" style="display: none;">
+                                            <button type="submit" class="btn btn-default py-2 px-3">
+                                                <i class="far fa-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% else %}
+                                    <td class="align-middle">
+                                    </td>
+                                    {% endif %}
+                                    {% if tool.MQStartTime %}
+                                    <td class="align-middle">{{ tool.MQStartTime }}</td>
+                                    {% elif perms.emsapp.change_toolingcalibrationrecord %}
+                                    <td class="align-middle">
+                                        <form action="/emsapp/toolingcalibrationrecord/{{ tool.TicketNo }}/form/" class="mb-0" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="date" class="{{ tool.ToolingNo }}" name="m-start-date" style="display: none;">
+                                            <button type="submit" class="btn btn-default py-2 px-3">
+                                                <i class="far fa-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% else %}
+                                    <td class="align-middle">
+                                    </td>
+                                    {% endif %}
+                                    {% if tool.MQEndTime %}
+                                    <td class="align-middle">{{ tool.MQEndTime }}</td>
+                                    {% elif perms.emsapp.change_toolingcalibrationrecord %}
+                                    <td class="align-middle">
+                                        <form action="/emsapp/toolingcalibrationrecord/{{ tool.TicketNo }}/update/" class="mb-0" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="date" class="{{ tool.ToolingNo }}" name="m-end-date" style="display: none;">
+                                            <button type="submit" class="btn btn-default py-2 px-3">
+                                                <i class="far fa-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% else %}
+                                    <td class="align-middle">
+                                    </td>
+                                    {% endif %}
+                                    <td class="align-middle">{{ tool.Location }}</td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:toolingCalibrationDetail' tool.TicketNo %}">
+                                            <i class="fas fa-file-alt"></i>
+                                        </a>
+                                    </td>
+                                    {% if perms.emsapp.delete_toolingcalibrationrecord and perms.emsapp.change_toolingcalibrationrecord and perms.emsapp.add_toolingcalibrationrecord %}
+                                    {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:toolingCalibrationUpdate' tool.TicketNo %}">
+                                            <i class="fas fa-pen-square"></i>
+                                        </a>
+                                        <a href="{% url 'emsapp:toolingCalibrationDelete' tool.TicketNo %}">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                                {% elif qs %}
+                                {% for q in qs %}
+                                <tr>
+                                <th scope="row" class="align-middle">{{ q.CalibratedTicketNo }}</th>
+                                    <td class="align-middle">{{ q.TooingNo }}</td>
+                                    <td class="align-middle">{{ q.Name }}</td>
+                                    <td class="align-middle">{{ q.CaliVendor }}</td>
+                                    <td class="align-middle">{{ q.CalibratedStartTime }}</td>
+                                    {% if q.CalibratedEndTime %}
+                                    <td class="align-middle">{{ q.CalibratedEndTime }}</td>
+                                    {% elif perms.emsapp.change_toolingcalibrationrecord %}
+                                    <td class="align-middle">
+                                        <form action="/emsapp/toolingcalibrationrecord/{{ q.TicketNo }}/update/" class="mb-0" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="date" class="{{ q.ToolingNo }}" name="c-end-date" style="display: none;">
+                                            <button type="submit" class="btn btn-default py-2 px-3">
+                                                <i class="far fa-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    {% comment %} {{ q.CalibratedEndTime }} {% endcomment %}
+                                    </td>
+                                    {% else %}
+                                    <td class="align-middle">
+                                    </td>
+                                    {% endif %}
+                                    <td class="align-middle">{{ q.MQStartTime }}</td>
+                                    {% if tool.MQEndTime %}
+                                    <td class="align-middle">{{ q.MQEndTime }}</td>
+                                    {% elif perms.emsapp.change_toolingcalibrationrecord %}
+                                    <td class="align-middle">
+                                        <form action="/emsapp/toolingcalibrationrecord/{{q.TicketNo}}/update/" class="mb-0" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="date" class="{{ q.ToolingNo }}" name="m-end-date" style="display: none;">
+                                            <button type="submit" class="btn btn-default py-2 px-3">
+                                                <i class="far fa-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% else %}
+                                    <td class="align-middle">
+                                    </td>
+                                    {% endif %}
+                                    <td class="align-middle">{{ q.Location }}</td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:toolingCalibrationDetail' q.TicketNo %}">
+                                            <i class="fas fa-file-alt"></i>
+                                        </a>
+                                    </td>
+                                    {% if perms.emsapp.delete_toolingcalibrationrecord and perms.emsapp.change_toolingcalibrationrecord and perms.emsapp.add_toolingcalibrationrecord%}
+                                    {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:toolingCalibrationUpdate' q.TicketNo %}">
+                                            <i class="fas fa-pen-square"></i>
+                                        </a>
+                                        <a href="{% url 'emsapp:toolingCalibrationDelete' q.TicketNo %}">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+$(document).ready(function () {
+    $('#t-table').DataTable({
+        "pagingType": "simple_numbers"
+    });
+});
+Date.prototype.toDateInputValue = (function() {
+    var local = new Date(this);
+    local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+    return local.toJSON().slice(0,10);
+});
+var caliDateInput = $('form').find('input[name="c-end-date"]')
+var mqEndDateInput = $('form').find('input[name="m-end-date"]')
+var mqStartDateInput = $('form').find('input[name="m-start-date"]')
+$.each(caliDateInput, function(index){
+    $(this).attr('value', new Date().toDateInputValue());
+    console.log($(this));
+})
+$.each(mqEndDateInput, function(index){
+    $(this).attr('value', new Date().toDateInputValue());
+})
+mqStartDateInput.each(function(index){
+    $(this).attr('value', new Date().toDateInputValue());
+})
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EMS System{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static '/emsapp/sidebar/css/style.css'%}">
+    <!-- MDBootstrap Datatables  -->
+    <link rel="stylesheet" type="text/css" href="{% static '/emsapp/mdb/css/addons/datatables.min.css'%}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Material Design Bootstrap -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" rel="stylesheet">
+    <style type="text/css">
+        #e-table_filter,
+        #e-table_length,
+        #a-table_filter,
+        #a-table_length,
+        #t-table_filter,
+        #t-table_length,
+        #n-table_filter,
+        #n-table_length,
+        #tr-table_filter,
+        #tr-table_length,
+        #overview-a-table_filter,
+        #overview-a-table_length,
+        #overview-a-table_info,
+        #overview-a-table_paginate,
+        #overview-t-table_filter,
+        #overview-t-table_length,
+        #overview-t-table_info,
+        #overview-t-table_paginate {
+          display: none;
+        }
+        .btn a, a{
+          color: white
+        }
+        
+        .btn a:hover, a:hover {
+          color: white;
+          text-decoration: none;
+        }
+        {% comment %}
+        .card-header-color { 
+          background-color: #DC143C;
+        } {% endcomment %}
+        .asteriskField {
+          color: red;
+        }
+        .form-check {
+          display: -webkit-inline-box;
+        }
+    </style>
+    {% block css %}
+    {% endblock %}
+    <!-- JQuery -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js"></script>
+    
+    {{ form.media }}
+</head>
+<body>
+    <main>
+        {% block content %}
+        {% comment %} For any .html file which extends base.html, will insert its html code here. {% endcomment %}
+        {% endblock %}
+    </main>
+    <script type="text/javascript" src="{% static 'emsapp/sidebar/js/main.js' %}"></script>
+    <script type="text/javascript" src="{% static 'emsapp/sidebar/js/popper.js' %}"></script>
+    <!-- MDBootstrap Datatables  -->
+    <script type="text/javascript" src="{% static 'emsapp/mdb/js/addons/datatables.min.js'%}"></script>
+    <!-- JavaScript & JQuery script-->
+    <script type="text/javascript">
+        $('#import').on('change', function(){
+            $('#import-form').submit();
+        });
+    </script>
+    {% block js %}{% endblock %}
+</body>
+</html>

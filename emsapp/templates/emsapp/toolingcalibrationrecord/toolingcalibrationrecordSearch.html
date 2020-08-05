@@ -1,0 +1,57 @@
+{% extends '../base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}Equipment List Search{% endblock %}
+
+{% block content %}
+<div class="modal fade" id="t-search-modal" tabindex="-1" role="dialog" aria-labelledby="Create" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <form id="t-search-form" class="mb-0" method="GET" action="/emsapp/toolingcalibrationrecord/search">
+                <div class="modal-header pink">
+                    <h5 class="modal-title text-white" id="create-label">Search</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" onclick="location.href='/emsapp/equipmentlist'">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="col-sm-6">
+                            <label for="message-text" class="col-form-label">Tool No</label>
+                            <input type="text" id="search-owner-name" class="form-control" name="toolNo" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            <label for="message-text" class="col-form-label">Location</label>
+                            <input type="text" id="search-location" class="form-control" name="location" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="message-text" class="col-form-label">Equipment Name</label>
+                            <input type="text" id="search-eq-name" class="form-control" name="eqName" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            <label for="message-text" class="col-form-label">Cali Vendor</label>
+                            <input type="text" id="search-cali-vendor" class="form-control" name="caliVendor" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-pink">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% include './toolingcalibrationrecord.html'%}
+
+{% endblock%}
+
+{% block js%}
+<script type='text/javascript'>
+$(document).ready(function(e) {
+    $('#t-search-modal').modal('show');
+    $('#t-search-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/toolingcalibrationrecord';
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,8 @@
+requests==2.22.0
+XlsxWriter==1.1.8
+PyDocX==0.9.10
+pandas==0.25.0
+numpy==1.17.0
+xlwings==0.15.8
+Django==2.1.10
+pywin32==224

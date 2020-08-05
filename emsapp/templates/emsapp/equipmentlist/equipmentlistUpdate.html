@@ -1,0 +1,95 @@
+{% extends '../base.html' %}
+
+{% load crispy_forms_tags %}
+{% load emsapp_extras %}
+
+{% block title %}Equipment List Update{% endblock %}
+
+{% block content %}
+<div class="modal fade bd-example-modal-lg" id="e-update-modal" tabindex="-1" role="dialog" aria-labelledby="Update" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <form id="e-update-form" method="post" novalidate enctype="multipart/form-data">
+
+            {% comment %} csrf_token must be inside form {% endcomment %}
+            {% csrf_token %}
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title text-white" id="create-label">Update</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.EquipmentNo|tabindex:1|as_crispy_field }}
+                            {{ form.AssetNo|tabindex:4|as_crispy_field }}
+                            {{ form.Name|tabindex:7|as_crispy_field }}
+                            {{ form.EquipmentOwnerID|tabindex:10|as_crispy_field }}
+                            {{ form.TeamGroup|tabindex:13|as_crispy_field }}
+                            {{ form.EquipmentGroup|tabindex:16|as_crispy_field }}
+                            {{ form.Site|tabindex:19|as_crispy_field }}
+                            {{ form.Length|tabindex:22|as_crispy_field }}
+                            {{ form.Weight|tabindex:25|as_crispy_field }}
+                            {{ form.ChDescription|tabindex:28|as_crispy_field }}
+                            {{ form.Specification|tabindex:31|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.LastModifyUser|tabindex:2|as_crispy_field }}
+                            {{ form.ToolingNo|tabindex:5|as_crispy_field }}
+                            {{ form.EnName|tabindex:8|as_crispy_field }}
+                            {{ form.EquipmentOwnerName|tabindex:11|as_crispy_field }}
+                            {{ form.ToolingGroup|tabindex:14|as_crispy_field }}
+                            {{ form.Location|tabindex:17|as_crispy_field }}
+                            {{ form.ProdVendor|tabindex:20|as_crispy_field }}
+                            {{ form.Width|tabindex:23|as_crispy_field }}
+                            {{ form.Status|tabindex:26|as_crispy_field }}
+                            {{ form.EnDescription|tabindex:29|as_crispy_field }}
+                            {{ form.Limitations|tabindex:32|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.LastModifyDate|tabindex:3|as_crispy_field }}
+                            {{ form.ModuleNo|tabindex:6|as_crispy_field }}
+                            {{ form.SerialNumber|tabindex:9|as_crispy_field }}
+                            {{ form.EquipmentType|tabindex:12|as_crispy_field }}
+                            {{ form.PhotoLink|tabindex:15|as_crispy_field }}
+                            <div class="mt-n4">
+                            <span class="col-form-label p-0 font-weight-bold">Current Link</span>
+                            {% for photo in photos %}
+                                <a class="blue-text font-weight-bold" href="/media/{{ photo }}" name="nonStockNo">{{ forloop.counter }}</a>
+                            {% endfor %}
+                            </div>
+                            {{ form.CreateUser|tabindex:18|as_crispy_field }}
+                            {{ form.CreateDate|tabindex:21|as_crispy_field }}
+                            {{ form.Height|tabindex:24|as_crispy_field }}
+                            {{ form.LimitFreezeQnty|tabindex:27|as_crispy_field }}
+                            {{ form.LastCalibratedDate|tabindex:30|as_crispy_field }}
+                            {{ form.NextCalibratedDate|tabindex:33|as_crispy_field }}
+                            {{ form.Cost|tabindex:36|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% include './equipmentlist.html'%}
+
+{% endblock %}
+
+{% block js%}
+<script>
+$(document).ready(function() {
+    $('#div_id_EquipmentType').attr('style', 'height: 70px;');
+    $('#div_id_PhotoLink').attr('style', 'height: 70px;');
+    $('#e-update-modal').modal('show');
+    $('#e-update-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/equipmentlist';
+    });
+})
+</script>
+{% endblock %}

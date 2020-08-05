@@ -1,0 +1,64 @@
+{% extends '../base.html' %}
+
+{% load crispy_forms_tags %}
+{% load emsapp_extras %}
+
+{% block title %}NonStock Trans Update{% endblock %}
+
+{% block content %}
+<div class="modal fade bd-example-modal-lg" id="n-update-modal" tabindex="-1" role="dialog" aria-labelledby="Update" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <form id="n-update-form" method="post" novalidate>
+            {% comment %} csrf_token must be inside form {% endcomment %}
+            {% csrf_token %} 
+                <div class="modal-header brown">
+                    <h5 class="modal-title text-white" id="create-label">Trans Update</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.NonStockTicketNo|tabindex:1|as_crispy_field }}
+                            {{ form.TransactionFrom|tabindex:4|as_crispy_field }}
+                            {{ form.TransactionReqUser|tabindex:7|as_crispy_field }}
+                            {{ form.NonStockNo|tabindex:10|as_crispy_field }}
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.EquipmentNo|tabindex:2|as_crispy_field }}
+                            {{ form.TransactionTo|tabindex:5|as_crispy_field }}
+                            {{ form.TransactionReqTime|tabindex:8|as_crispy_field }}
+                            {{ form.Description|tabindex:11|as_crispy_field }}       
+                        </div>
+                        <div class="form-group col-md-4 mb-0">
+                            {{ form.TicketCreateUser|tabindex:3|as_crispy_field }}
+                            {{ form.TicketCreateTime|tabindex:6|as_crispy_field }}
+                            {{ form.TruckType|tabindex:9|as_crispy_field }}
+                            {{ form.OtherDemand|tabindex:12|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="location.href='/emsapp/nonstocktransactionrecord'" type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-brown">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% include '../nonstocktransactionrecord/nonstocktransactionrecord.html' %}
+{% endblock %}
+
+{% block js%}
+<script>
+$(document).ready(function() {
+    $('#n-update-modal').modal('show');
+    $('#n-update-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/equipmentlist';
+    });
+})
+</script>
+{% endblock %}
+
