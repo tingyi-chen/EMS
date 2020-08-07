@@ -108,7 +108,9 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right dropdown-default"
                             aria-labelledby="navbarDropdownMenuLink-333">
-                            <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                            {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
+                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            {% endif %}
                             <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                             </div>
                         </li>
@@ -155,9 +157,10 @@
                                         <th scope="col th-sm">#</th>
                                         <th scope="col th-sm">AssetNo</th>
                                         <th scope="col th-sm">Location</th>
-                                        <th scope="col th-sm">LoanReason</th>
-                                        <th scope="col th-sm">LoanStartTime</th>
-                                        <th scope="col th-sm">LoanEndTime</th>
+                                        <th scope="col th-sm">Reason</th>
+                                        <th scope="col th-sm">StartTime</th>
+                                        <th scope="col th-sm">EndTime</th>
+                                        <th scope="col th-sm">ActualRTime</th>
                                         <th scope="col th-sm">Borrower</th>
                                         <th scope="col th-sm">Det.</th>
                                         {% if perms.emsapp.delete_assetloanrecord and perms.emsapp.change_assetloanrecord and perms.emsapp.add_assetloanrecord %}
@@ -176,6 +179,22 @@
                                     <td class="align-middle">{{ asset.LoanReason }}</td>
                                     <td class="align-middle">{{ asset.LoanStartTime }}</td>
                                     <td class="align-middle">{{ asset.LoanEndTime }}</td>
+                                    {% if asset.ActualReturnDate %}
+                                    <td class="align-middle">{{ asset.ActualReturnDate }}</td>
+                                    {% elif perms.emsapp.change_assetloanrecord %}
+                                    <td class="align-middle">
+                                        <form action="/emsapp/assetloanrecord/{{ asset.TicketNo }}/form/" class="mb-0" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="date" name="l-end-time" style="display: none;">
+                                            <button type="submit" class="btn btn-default py-2 px-3">
+                                                <i class="far fa-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% else %}
+                                    <td class="align-middle">
+                                    </td>
+                                    {% endif %}
                                     <td class="align-middle">{{ asset.Borrower }}</td>
                                     <td class="align-middle">
                                         <a href="{% url 'emsapp:assetLoanDetail' asset.TicketNo %}">
@@ -188,7 +207,7 @@
                                         <a href="{% url 'emsapp:assetLoanUpdate' asset.TicketNo %}">
                                             <i class="fas fa-pen-square"></i>
                                         </a>
-                                        <a href="{% url 'emsapp:assetLoanDelete' asset.TicketNo %}">
+                                        <a href="{% url 'emsapp:assetLoanDelete' asset.TicketNo %}" onclick="return confirm('Are you sure to delete this row?')">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </td>
@@ -204,6 +223,22 @@
                                     <td class="align-middle">{{ q.LoanReason }}</td>
                                     <td class="align-middle">{{ q.LoanStartTime }}</td>
                                     <td class="align-middle">{{ q.LoanEndTime }}</td>
+                                    {% if q.ActualReturnDate %}
+                                    <td class="align-middle">{{ q.ActualReturnDate }}</td>
+                                    {% elif perms.emsapp.change_assetloanrecord %}
+                                    <td class="align-middle">
+                                        <form action="/emsapp/assetloanrecord/{{ q.TicketNo }}/form/" class="mb-0" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="date" name="l-end-time" style="display: none;">
+                                            <button type="submit" class="btn btn-defualt py-2 px-3">
+                                                <i class="far fa-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    {% else %}
+                                    <td class="align-middle">
+                                    </td>
+                                    {% endif %}
                                     <td class="align-middle">{{ q.Borrower }}</td>
                                     <td class="align-middle">
                                         <a href="{% url 'emsapp:assetLoanDetail' q.TicketNo %}">
@@ -216,7 +251,7 @@
                                         <a href="{% url 'emsapp:assetLoanUpdate' q.TicketNo %}">
                                             <i class="fas fa-pen-square"></i>
                                         </a>
-                                        <a href="{% url 'emsapp:assetLoanDelete' q.TicketNo %}">
+                                        <a href="{% url 'emsapp:assetLoanDelete' q.TicketNo %}" onclick="return confirm('Are you sure to delete this row?')">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </td>
@@ -266,10 +301,20 @@
 
 {% block js %}
 <script type="text/javascript">
-    $(document).ready(function () {
-        $('#a-table').DataTable({
-            "pagingType": "simple_numbers"
-        });
+$(document).ready(function () {
+    $('#a-table').DataTable({
+        "pagingType": "simple_numbers"
     });
+});
+Date.prototype.toDateInputValue = (function() {
+var local = new Date(this);
+local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+return local.toJSON().slice(0,10);
+});
+var actualEndTime = $('form').find('input[name="l-end-time"]')
+$.each(actualEndTime, function(index){
+    $(this).attr('value', new Date().toDateInputValue());
+    console.log($(this));
+})
 </script>
 {% endblock %}

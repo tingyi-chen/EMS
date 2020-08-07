@@ -12,6 +12,8 @@ from django.db.models import Q
 from django.core import serializers
 from django.middleware.csrf import get_token
 from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.db.models import Max
 import pandas as pd
 import requests
 import datetime
@@ -23,7 +25,7 @@ from dateutil.relativedelta import *
 from django.forms import formset_factory
 from bootstrap_datepicker_plus import DatePickerInput
 
-from .models import EquipmentList, AssetLoanRecord, ToolingCalibrationRecord, NonStockTransactionRecord, TransactionRecord
+from .models import EquipmentList, AssetLoanRecord, ToolingCalibrationRecord, NonStockTransactionRecord, TransactionRecord, Location, ActionLog
 from .forms import EquipmentForm, AssetLoanRecordForm, ToolingCalibrationRecordForm, NonStockTransactionRecordForm, TransactionRecordForm
 '''
 Note:
@@ -100,44 +102,67 @@ tr_admin_tuple = (
     'emsapp.view_transactionrecord',
 )
 date_dict = {
-    '2020':
-    {
-        'Jul': ['31']
+    'Asset': {
+        '2020':{'Jul': ['31']}
+    },
+    'Tool': {
+        '2020':{'Jul': ['31']}
+    },
+    'NonStock': {
+        '2020':{'Jul': ['31']}
     }
 }
 value_dict = {
-    '2020':
-    {
-        'Jul': [0]
+    'Asset': {
+        '2020':{'Jul': [0]}
+    },
+    'Tool': {
+        '2020':{'Jul': [0]}
+    },
+    'NonStock': {
+        '2020':{'Jul': [0]}
     }
 }
+
+def make_log(request, action):
+    user = request.user
+    record = ActionLog(User=user, Action=action)
+    record.save()
+
 @login_required
 @permission_required(e_admin_tuple, raise_exception=True)
-def checkbox_validation(request, form, photo_list, redirect_url, render_path, data):
+def create_validation(request, form, photo_list, redirect_url, render_path, data):
     if len(request.POST.getlist('EquipmentType')) != 3:
         if len(request.POST.getlist('EquipmentType')) != 2:
             if len(request.POST.getlist('EquipmentType')) != 1:
                 pass
             elif 'Asset' in request.POST.getlist('EquipmentType'):
                 form.fields['AssetNo'].required = True
+                return False
             elif 'Tool' in request.POST.getlist('EquipmentType'):
                 form.fields['ToolingNo'].required = True
                 form.fields['LastCalibratedDate'].required = True
                 form.fields['NextCalibratedDate'].required = True
+                return True
             elif 'NonS' in request.POST.getlist('EquipmentType'):
                 form.fields['NonStockNo'].required = True
+                return False
         elif not ('Asset' in request.POST.getlist('EquipmentType')):
+            form.fields['ToolingNo'].required = True
             form.fields['LastCalibratedDate'].required = True
             form.fields['NextCalibratedDate'].required = True
             form.fields['NonStockNo'].required = True
+            return True
         elif not ('Tool' in request.POST.getlist('EquipmentType')):
             form.fields['AssetNo'].required = True
             form.fields['NonStockNo'].required = True
+            return False
         elif not ('NonS' in request.POST.getlist('EquipmentType')):
             form.fields['AssetNo'].required = True
             form.fields['ToolingNo'].required = True
             form.fields['LastCalibratedDate'].required = True
             form.fields['NextCalibratedDate'].required = True
+            return True
     else:
         form.fields['EquipmentType'].required = True
         form.fields['AssetNo'].required = True
@@ -145,22 +170,9 @@ def checkbox_validation(request, form, photo_list, redirect_url, render_path, da
         form.fields['LastCalibratedDate'].required = True
         form.fields['NextCalibratedDate'].required = True
         form.fields['NonStockNo'].required = True
-    if form.is_valid():
-        instance = form.save(commit=False)
-        instance.EquipmentType = ";".join(request.POST.getlist('EquipmentType'))
-        for photo in request.FILES.getlist('PhotoLink'):
-            photo_list.append(photo.name)
-            instance.PhotoLink = photo
-            instance.save()
-        photo_str = ";".join(photo_list)
-        instance.PhotoLink = photo_str
-        instance.save()
-        return redirect(redirect_url)
-    else:
-        return render(request, render_path, data)
-
+        return True
 @login_required
-@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple), raise_exception=True)
+@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple, tr_admin_tuple), raise_exception=True)
 def update(request, pk):
     redirect_url = '/emsapp/' + request.path.split('/')[2]
     render_path = 'emsapp/' + request.path.split('/')[2] + '/' + request.path.split('/')[2] + 'Update.html'
@@ -181,8 +193,24 @@ def update(request, pk):
                 date=orig_data['CreateDate'],
                 update=True
             )
-            action = checkbox_validation(request, form, orig_data['PhotoLink'].split(';'), redirect_url, render_path, {'equipment_list': EquipmentList.objects.filter(~Q(Deleted=True)).all(), 'form': form, 'photos': orig_data['PhotoLink'].split(';')})
-            return action
+            photo_list = orig_data['PhotoLink'].split(';')
+            data = {'equipment_list': EquipmentList.objects.filter(~Q(Deleted=True)).all(), 'form': form, 'photos': orig_data['PhotoLink'].split(';')}
+            create_validation(request, form, photo_list, redirect_url, render_path, data)
+            if form.is_valid():
+                instance = form.save(commit=False)
+                instance.EquipmentType = ";".join(request.POST.getlist('EquipmentType'))
+                for photo in request.FILES.getlist('PhotoLink'):
+                    photo_list.append(photo.name)
+                    instance.PhotoLink = photo
+                    instance.save()
+                photo_str = ";".join(photo_list)
+                instance.PhotoLink = photo_str
+                instance.save()
+                action_statement = 'Update EquipmentList with EquipmentNo: ' + orig_data['EquipmentNo']
+                make_log(request, action_statement)
+                return redirect(redirect_url)
+            else:
+                return render(request, render_path, data)
         elif model == ToolingCalibrationRecord:
             orig_data = model.objects.filter(TicketNo=pk).values()[0]
             instance = get_object_or_404(model, TicketNo=pk)
@@ -198,10 +226,17 @@ def update(request, pk):
                 form_en_name=orig_data['EnName'],
                 form_mdno=orig_data['ModuleNo'],
                 photo=orig_data['PhotoLink'],
-                pr_vendor=orig_data['ProdVendor']
+                pr_vendor=orig_data['ProdVendor'],
+                location=orig_data['Location'],
             )
-            name_prefix = request.path.split('/')[2].replace('record', '')
-            return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
+            if form.is_valid():
+                form.save()
+                action_statement = 'Update ToolingCalibrationRecord with ToolingNo: ' + orig_data['ToolingNo']
+                make_log(request, action_statement)
+                return redirect('/emsapp/toolingcalibrationrecord')
+            else:
+                name_prefix = request.path.split('/')[2].replace('record', '')
+                return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
         elif model == NonStockTransactionRecord:
             orig_data = model.objects.filter(TicketNo=pk).values()[0]
             instance = get_object_or_404(model, TicketNo=pk)
@@ -213,8 +248,14 @@ def update(request, pk):
                 form_eqno=orig_data['EquipmentNo'],
                 form_ntno=orig_data['NonStockTicketNo'],
             )
-            name_prefix = request.path.split('/')[2].replace('record', '')
-            return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
+            if form.is_valid():
+                form.save()
+                action_statement = 'Update NonStockTransactionRecord with NonStockNo: ' + orig_data['NonStockNo']
+                make_log(request, action_statement)
+                return redirect('/emsapp/nonstocktransactionrecord')
+            else:
+                name_prefix = request.path.split('/')[2].replace('record', '')
+                return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
         elif model == AssetLoanRecord:
             orig_data = model.objects.filter(TicketNo=pk).values()[0]
             instance = get_object_or_404(model, TicketNo=pk)
@@ -228,8 +269,14 @@ def update(request, pk):
                 form_asno=orig_data['AssetNo'],
                 photo=orig_data['PhotoLink']
             )
-            name_prefix = request.path.split('/')[2].replace('record', '')
-            return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
+            if form.is_valid():
+                form.save()
+                action_statement = 'Update AssetLoanRecord with AssetNo: ' + orig_data['AssetNo']
+                make_log(request, action_statement)
+                return redirect('/emsapp/assetloanrecord')
+            else:
+                name_prefix = request.path.split('/')[2].replace('record', '')
+                return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
         elif model == TransactionRecord:
             orig_data = model.objects.filter(TicketNo=pk).values()[0]
             instance = get_object_or_404(model, TicketNo=pk)
@@ -238,39 +285,54 @@ def update(request, pk):
                 request.FILES or None,
                 instance=instance,
                 user=request.user,
-                form_eqno=orig_data['EquipmentNo'],
-                form_ntno=orig_data['TransactionTicketNo'],
+                form_ttno=orig_data['TransactionTicketNo'],
             )
-            name_prefix = request.path.split('/')[2].replace('record', '')
-            return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
+            if form.is_valid():
+                form.save()
+                action_statement = 'Update Transrecord with TransactionTicketNo: ' + orig_data['TransactionTicketNo']
+                make_log(request, action_statement)
+                return redirect('/emsapp/transactionrecord')
+            else:
+                name_prefix = request.path.split('/')[2].replace('record', '')
+                return render(request, render_path, {name_prefix + '_record': model.objects.filter(~Q(Deleted=True)).all(), 'form': form})
     else:
         print('You are not allowed to do so.')
         return redirect(redirect_url)
 
 @login_required
-@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple), raise_exception=True)
+@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple, tr_admin_tuple), raise_exception=True)
 def delete(request, pk):
     '''
     Note
     (1) Here's a hidden self.user parameter which contains user info
     '''
     redirect_url = '/emsapp/' + request.path.split('/')[2]
-    permission = 'delete_' + request.path.split('/')[2]
     model = model_list[request.path.split('/')[2]]
 
-    if request.user.has_perm(permission):
-        if model == EquipmentList:
-            obj = model.objects.filter(CountIndex=pk)
-        else:
-            obj = model.objects.filter(TicketNo=pk)
-        obj.update(Deleted=True)
-        return redirect(redirect_url)
+    if model == EquipmentList:
+        obj = model.objects.filter(CountIndex=pk)
     else:
-        print('You are not allowed to do so.')
-        return redirect(redirect_url)
+        obj = model.objects.filter(TicketNo=pk)
+    obj.update(Deleted=True)
+    action_statement = 'Delete: ' + str(obj)
+    make_log(request, action_statement)
+    return redirect(redirect_url)
 
 @login_required
-@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple), raise_exception=True)
+@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple, tr_admin_tuple), raise_exception=True)
+def recovery(request, pk):
+    redirect_url = '/emsapp/' + request.path.split('/')[2]
+    model = model_list[request.path.split('/')[2]]
+
+    data = model.objects.get(pk=pk)
+    data.Deleted = False
+    data.save()
+    action_statement = 'Recover: ' + data
+    make_log(request, action_statement)
+    return redirect(redirect_url)
+
+@login_required
+@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple, tr_admin_tuple), raise_exception=True)
 def create_form(request, *args, **kwargs):
     model = model_list[request.path.split('/')[2]]
     if model == ToolingCalibrationRecord:
@@ -376,16 +438,11 @@ def create_form(request, *args, **kwargs):
     ),
     login_url='/emsapp/accounts/login/')
 def search(request):
-    redirect_url = '/emsapp/' + request.path.split('/')[2]
-    render_path = 'emsapp/' + request.path.split('/')[2] + '/' + request.path.split('/')[2] + 'Search.html'
-    get_name = request.path.split('/')[2] + '_search'
-    model = model_list[request.path.split('/')[2]]
-
-    if model == EquipmentList:
-        qs = model.objects.all()
+    if request.path.split('/')[3] == 'equipment':
+        qs = EquipmentList.objects.all()
         query_len = len(list(filter(None, request.GET.dict().values())))
         if query_len != 0:
-            qs = model.objects.filter(~Q(Deleted=True)).filter(
+            qs = EquipmentList.objects.filter(Q(Deleted=True)).filter(
                 Q(AssetNo__icontains=request.GET.get('assetNo')) & 
                 Q(ToolingNo__icontains=request.GET.get('toolNo')) & 
                 Q(NonStockNo__icontains=request.GET.get('nonStockNo')) & 
@@ -397,32 +454,32 @@ def search(request):
                 Q(EquipmentType__icontains=request.GET.get('type'))
             )
             return qs
-    elif model == AssetLoanRecord:
-        qs = model.objects.all()
+    elif request.path.split('/')[3] == 'asset':
+        qs = AssetLoanRecord.objects.all()
         query_len = len(list(filter(None, request.GET.dict().values())))
         if query_len != 0:
-            qs = model.objects.filter(~Q(Deleted=True)).filter(
+            qs = AssetLoanRecord.objects.filter(~Q(Deleted=True)).filter(
                 Q(AssetNo__icontains=request.GET.get('assetNo')) & 
                 Q(LoanVendor__icontains=request.GET.get('loanVendor')) &
                 Q(Location__icontains=request.GET.get('location'))
             )
             return qs
-    elif model == ToolingCalibrationRecord:
-        qs = model.objects.all()
+    elif request.path.split('/')[3] == 'tool':
+        qs = ToolingCalibrationRecord.objects.all()
         query_len = len(list(filter(None, request.GET.dict().values())))
         if query_len != 0:
-            qs = model.objects.filter(~Q(Deleted=True)).filter(
+            qs = ToolingCalibrationRecord.objects.filter(~Q(Deleted=True)).filter(
                 Q(ToolingNo__icontains=request.GET.get('toolNo')) & 
                 Q(CaliVendor__icontains=request.GET.get('caliVendor')) &
                 Q(Name__icontains=request.GET.get('eqName')) &
                 Q(Location__icontains=request.GET.get('location'))
             )
             return qs
-    elif model == NonStockTransactionRecord:
-        qs = model.objects.all()
+    elif request.path.split('/')[3] == 'nonstock':
+        qs = NonStockTransactionRecord.objects.all()
         query_len = len(list(filter(None, request.GET.dict().values())))
         if query_len != 0:
-            qs = model.objects.filter(~Q(Deleted=True)).filter(
+            qs = NonStockTransactionRecord.objects.filter(~Q(Deleted=True)).filter(
                 Q(NonStockNo__icontains=request.GET.get('nonStockNo')) & 
                 Q(TransactionFrom__icontains=request.GET.get('transFrom')) &
                 Q(TransactionTo__icontains=request.GET.get('transTo')) &
@@ -430,12 +487,11 @@ def search(request):
                 Q(TransactionReqUser__icontains=request.GET.get('transReqUser'))
             )
             return qs
-    elif model == TransactionRecord:
-        qs = model.objects.all()
+    elif request.path.split('/')[3] == 'trans':
+        qs = TransactionRecord.objects.all()
         query_len = len(list(filter(None, request.GET.dict().values())))
-        print(query_len)
         if query_len != 0:
-            qs = model.objects.filter(~Q(Deleted=True)).filter(
+            qs = TransactionRecord.objects.filter(~Q(Deleted=True)).filter(
                 Q(TransactionNo__icontains=request.GET.get('transNo')) & 
                 Q(TransactionFrom__icontains=request.GET.get('transFrom')) &
                 Q(TransactionTo__icontains=request.GET.get('transTo')) &
@@ -443,8 +499,77 @@ def search(request):
                 Q(TransactionReqUser__icontains=request.GET.get('transReqUser'))
             )
             return qs
+    else:
+        redirect_url = '/emsapp/' + request.path.split('/')[2]
+        render_path = 'emsapp/' + request.path.split('/')[2] + '/' + request.path.split('/')[2] + 'Search.html'
+        get_name = request.path.split('/')[2] + '_search'
+        model = model_list[request.path.split('/')[2]]
 
-@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple), raise_exception=True)
+        if model == EquipmentList:
+            qs = model.objects.all()
+            query_len = len(list(filter(None, request.GET.dict().values())))
+            if query_len != 0:
+                print(request.GET.dict())
+                qs = model.objects.filter(~Q(Deleted=True)).filter(
+                    Q(AssetNo__icontains=request.GET.get('assetNo')) & 
+                    Q(ToolingNo__icontains=request.GET.get('toolNo')) & 
+                    Q(NonStockNo__icontains=request.GET.get('nonStockNo')) & 
+                    Q(EquipmentOwnerName__icontains=request.GET.get('ownerName')) &
+                    Q(EnName__icontains=request.GET.get('enName')) &
+                    Q(Location__icontains=request.GET.get('location')) &
+                    Q(Site__icontains=request.GET.get('site')) &
+                    Q(Status__icontains=request.GET.get('status')) &
+                    Q(EquipmentType__icontains=request.GET.get('type'))
+                )
+                return qs
+        elif model == AssetLoanRecord:
+            qs = model.objects.all()
+            query_len = len(list(filter(None, request.GET.dict().values())))
+            if query_len != 0:
+                qs = model.objects.filter(~Q(Deleted=True)).filter(
+                    Q(AssetNo__icontains=request.GET.get('assetNo')) & 
+                    Q(LoanVendor__icontains=request.GET.get('loanVendor')) &
+                    Q(Location__icontains=request.GET.get('location'))
+                )
+                return qs
+        elif model == ToolingCalibrationRecord:
+            qs = model.objects.all()
+            query_len = len(list(filter(None, request.GET.dict().values())))
+            if query_len != 0:
+                qs = model.objects.filter(~Q(Deleted=True)).filter(
+                    Q(ToolingNo__icontains=request.GET.get('toolNo')) & 
+                    Q(CaliVendor__icontains=request.GET.get('caliVendor')) &
+                    Q(Name__icontains=request.GET.get('eqName')) &
+                    Q(Location__icontains=request.GET.get('location'))
+                )
+                return qs
+        elif model == NonStockTransactionRecord:
+            qs = model.objects.all()
+            query_len = len(list(filter(None, request.GET.dict().values())))
+            if query_len != 0:
+                qs = model.objects.filter(~Q(Deleted=True)).filter(
+                    Q(NonStockNo__icontains=request.GET.get('nonStockNo')) & 
+                    Q(TransactionFrom__icontains=request.GET.get('transFrom')) &
+                    Q(TransactionTo__icontains=request.GET.get('transTo')) &
+                    Q(TruckType__icontains=request.GET.get('truckType')) &
+                    Q(TransactionReqUser__icontains=request.GET.get('transReqUser'))
+                )
+                return qs
+        elif model == TransactionRecord:
+            qs = model.objects.all()
+            query_len = len(list(filter(None, request.GET.dict().values())))
+            print(query_len)
+            if query_len != 0:
+                qs = model.objects.filter(~Q(Deleted=True)).filter(
+                    Q(TransactionNo__icontains=request.GET.get('transNo')) & 
+                    Q(TransactionFrom__icontains=request.GET.get('transFrom')) &
+                    Q(TransactionTo__icontains=request.GET.get('transTo')) &
+                    Q(TruckType__icontains=request.GET.get('truckType')) &
+                    Q(TransactionReqUser__icontains=request.GET.get('transReqUser'))
+                )
+                return qs
+
+@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple, tr_admin_tuple), raise_exception=True)
 def xlsx_export(request):
     redirect_url = '/emsapp/' + request.path.split('/')[2]
     export_name = request.path.split('/')[2] + '_' + str(datetime.date.today().strftime('%Y_%m_%d')) + '_export.xlsx'
@@ -456,9 +581,11 @@ def xlsx_export(request):
         df2 = pd.DataFrame.from_dict(q, orient='index').T
         df = pd.concat([df, df2])
     df.to_excel('C:\\Users\\kchen171277\\Desktop\\' + export_name, index=False)
+    action_statement = 'Export ' + request.path.split('/')[2].upper() + ' to Desktop: ' + export_name
+    make_log(request, action_statement)
     return redirect(redirect_url)
 
-@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple), raise_exception=True)
+@permission_required((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple, tr_admin_tuple), raise_exception=True)
 def xlsx_import(request):
     file_name = request.FILES['import']
     # fs = FileSystemStorage(location='media/import/', base_url='/media/import/')
@@ -466,57 +593,148 @@ def xlsx_import(request):
     file_save = fs.save(file_name.name, file_name)
     file_url = fs.url(file_save)
     file_path = os.path.abspath(os.getcwd() + file_url)
-    e_obj = EquipmentList.objects
 
     try:
-        df = pd.read_excel(file_path)
-        df.fillna('', inplace=True)
-        print(df)
-        if e_obj.all() and e_obj.filter(EquipmentNo__icontains='E'):
-            pk = int(str(e_obj.filter(EquipmentNo__icontains='E').latest('CountIndex')))
-            for eqno in range(pk, len(df['CountIndex']) + pk):
-                df['CountIndex'].iloc[eqno-pk] = eqno + 1
-                df['EquipmentNo'].iloc[eqno-pk] = 'E_' + format(eqno + 1, '06d')
-        elif e_obj.all():
-            pk = int(str(EquipmentList.objects.latest('CountIndex')))
-            for eqno in range(pk, len(df['CountIndex']) + pk):
-                df['CountIndex'].iloc[eqno-pk] = eqno + 1
-                df['EquipmentNo'].iloc[eqno-pk] = 'E_' + format(eqno + 1, '06d')
-        else:
-            for eqno in range(0, len(df['CountIndex'])):
-                df['CountIndex'].iloc[eqno] = eqno + 1
-                df['EquipmentNo'].iloc[eqno] = 'E_' + format(eqno + 1, '06d')
-        for k in df.itertuples():
-            eqlist = EquipmentList(
-                EquipmentNo = k.EquipmentNo,
-                EquipmentOwnerID = str(k.EquipmentOwnerID),
-                EquipmentOwnerName = k.EquipmentOwnerName,
-                AssetNo = str(k.AssetNo),
-                ToolingNo = k.ToolingNo,
-                NonStockNo = k.NonStockNo,
-                EquipmentType = k.EquipmentType,
-                EnDescription = k.EnDescription,
-                ChDescription = k.ChDescription,
-                EquipmentGroup = k.EquipmentGroup,
-                Location = k.Location,
-                Specification = k.Specification,
-                Status = k.Status,
-                LastModifyUser = k.LastModifyUser,
-                Limitations = k.Limitations,
-                SerialNumber = k.SerialNumber,
-                CreateUser = k.CreateUser,
-                Site = k.Site
-                )
-            eqlist.save()
+        if request.path.split('/')[2] == 'equipmentlist':
+            e_obj = EquipmentList.objects
+            df = pd.read_excel(file_path)
+            df.fillna('', inplace=True)
+            if e_obj.all() and e_obj.filter(EquipmentNo__icontains='E'):
+                pk = int(str(e_obj.filter(EquipmentNo__icontains='E').latest('CountIndex')))
+                for eqno in range(pk, len(df['CountIndex']) + pk):
+                    df['CountIndex'].iloc[eqno-pk] = eqno + 1
+                    df['EquipmentNo'].iloc[eqno-pk] = 'E_' + format(eqno + 1, '06d')
+            elif e_obj.all():
+                pk = int(str(EquipmentList.objects.latest('CountIndex')))
+                for eqno in range(pk, len(df['CountIndex']) + pk):
+                    df['CountIndex'].iloc[eqno-pk] = eqno + 1
+                    df['EquipmentNo'].iloc[eqno-pk] = 'E_' + format(eqno + 1, '06d')
+            else:
+                for eqno in range(0, len(df['CountIndex'])):
+                    df['CountIndex'].iloc[eqno] = eqno + 1
+                    df['EquipmentNo'].iloc[eqno] = 'E_' + format(eqno + 1, '06d')
+            for index, row in df.iterrows():
+                data_dict = row.to_dict()
+                eqlist = EquipmentList(**data_dict)
+                eqlist.save()
+                action_statement = 'Import Data into EquipmentList with: ' + str(data_dict)
+                make_log(request, action_statement)
+            return redirect('/emsapp/equipmentlist')
+        elif request.path.split('/')[2] == 'assetloanrecord':
+            a_obj = AssetLoanRecord.objects
+            df = pd.read_excel(file_path)
+            df.fillna('', inplace=True)
+            if a_obj.all() and a_obj.filter(AssetLoanTicketNo__icontains='A'):
+                pk = int(str(a_obj.filter(AssetLoanTicketNo__icontains='A').latest('TicketNo')))
+                for atno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[atno-pk] = atno + 1
+                    df['AssetLoanTicketNo'].iloc[atno-pk] = 'A_' + format(atno + 1, '06d')
+            elif a_obj.all():
+                pk = int(str(a_obj.latest('TicketNo')))
+                for atno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[atno-pk] = atno + 1
+                    df['AssetLoanTicketNo'].iloc[atno-pk] = 'A_' + format(atno + 1, '06d')
+            else:
+                for atno in range(0, len(df['TicketNo'])):
+                    df['TicketNo'].iloc[atno-pk] = atno + 1
+                    df['AssetLoanTicketNo'].iloc[atno-pk] = 'A_' + format(atno + 1, '06d')
+            for index, row in df.iterrows():
+                data_dict = row.to_dict()
+                alist = AssetLoanRecord(**data_dict)
+                alist.save()
+                action_statement = 'Import Data into AssetLoanRecord with: ' + str(data_dict)
+                make_log(request, action_statement)
+            return redirect('/emsapp/assetloanrecord')
+        elif request.path.split('/')[2] == 'toolingcalibrationrecord':
+            t_obj = ToolingCalibrationRecord.objects
+            df = pd.read_excel(file_path)
+            df.fillna('', inplace=True)
+            if t_obj.all() and t_obj.filter(ToolingCalibrationTicketNo__icontains='T'):
+                pk = str(t_obj.filter(ToolingCalibrationTicketNo__icontains='T').latest('TicketNo'))
+                for ttno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[ttno-pk] = ttno + 1
+                    df['ToolingCalibrationTicketNo'].iloc[ttno-pk] = 'T_' + format(ttno + 1, '06d')
+            elif t_obj.all():
+                pk = int(str(t_obj.latest('TicketNo')))
+                for ttno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[ttno-pk] = ttno + 1
+                    df['ToolingCalibrationTicketNo'].iloc[ttno-pk] = 'T_' + format(ttno + 1, '06d')
+            else:
+                for ttno in range(0, len(df['TicketNo'])):
+                    df['TicketNo'].iloc[ttno-pk] = ttno + 1
+                    df['ToolingCalibrationTicketNo'].iloc[ttno-pk] = 'T_' + format(ttno + 1, '06d')
+            for index, row in df.iterrows():
+                data_dict = row.to_dict()
+                tlist = ToolingCalibrationRecord(**data_dict)
+                tlist.save()
+                action_statement = 'Import Data into ToolingCalibrationRecord with: ' + str(data_dict)
+                make_log(request, action_statement)
+            return redirect('/emsapp/toolingcalibrationrecord')
+        elif request.path.split('/')[2] == 'nonstocktransactionrecord':
+            n_obj = NonStockTransactionRecord.objects
+            df = pd.read_excel(file_path)
+            df.fillna('', inplace=True)
+            if n_obj.all() and n_obj.filter(NonStockTransactionTicketNo__icontains='N'):
+                pk = str(n_obj.filter(NonStockTransactionTicketNo__icontains='N').latest('TicketNo'))
+                for ntno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[ntno-pk] = ntno + 1
+                    df['NonStockTransactionTicketNo'].iloc[ntno-pk] = 'N_' + format(ntno + 1, '06d')
+            elif n_obj.all():
+                pk = int(str(n_obj.latest('TicketNo')))
+                for ntno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[ntno-pk] = ntno + 1
+                    df['NonStockTransactionTicketNo'].iloc[ntno-pk] = 'N_' + format(ntno + 1, '06d')
+            else:
+                for ntno in range(0, len(df['TicketNo'])):
+                    df['TicketNo'].iloc[ntno-pk] = ntno + 1
+                    df['NonStockTransactionTicketNo'].iloc[ntno-pk] = 'N_' + format(ntno + 1, '06d')
+            for index, row in df.iterrows():
+                data_dict = row.to_dict()
+                nlist = NonStockTransactionRecord(**data_dict)
+                nlist.save()
+                action_statement = 'Import Data into NonStockTransactionRecord with: ' + str(data_dict)
+                make_log(request, action_statement)
+            return redirect('/emsapp/nonstocktransactionrecord')
+        elif request.path.split('/')[2] == 'transactionrecord':
+            tr_obj = TransactionRecord.objects
+            df = pd.read_excel(file_path)
+            df.fillna('', inplace=True)
+            if tr_obj.all() and tr_obj.filter(TransactionTicketNo__icontains='TR'):
+                pk = str(tr_obj.filter(TransactionTicketNo__icontains='TR').latest('TicketNo'))
+                for trno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[trno-pk] = trno + 1
+                    df['TransactionTicketNo'].iloc[trno-pk] = 'TR_' + format(trno + 1, '06d')
+            elif tr_obj.all():
+                pk = int(str(tr_obj.latest('TicketNo')))
+                for trno in range(pk, len(df['TicketNo']) + pk):
+                    df['TicketNo'].iloc[trno-pk] = trno + 1
+                    df['TransactionTicketNo'].iloc[trno-pk] = 'TR_' + format(trno + 1, '06d')
+            else:
+                for trno in range(0, len(df['TicketNo'])):
+                    df['TicketNo'].iloc[trno-pk] = trno + 1
+                    df['TransactionTicketNo'].iloc[trno-pk] = 'TR_' + format(trno + 1, '06d')
+            for index, row in df.iterrows():
+                data_dict = row.to_dict()
+                print(data_dict)
+                trlist = TransactionRecord(**data_dict)
+                trlist.save()
+                action_statement = 'Import Data into TransactionRecord with: ' + str(data_dict)
+                make_log(request, action_statement)
+            return redirect('/emsapp/transactionrecord')
+    except KeyError:
+        print("Please Choose the Right File Where It's Columns match the Model Field Format")
     except XLRDError or UnboundLocalError:
-        print('Please import .xlsx files')
+        print('Please import .xlsx files.')
         print('Import Failed!')
     except FileNotFoundError:
-        print('File Not Found! Please check your naming validation, i.e. space')
+        print('File Not Found. Please check your naming validation, i.e. space is not allowed')
         print('Import Failed!')
-    finally:
-        print('Import Success')
-        return redirect('/emsapp/equipmentlist')
+    except ValidationError:
+        print('Data Column Name is invalid. Please have a check.')
+    except ValueError as e:
+        print(e)
+        print('Integer/Float fields get string inside. Please change these fields.')
+    return redirect('/emsapp/equipmentlist')
 
 class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormView):
     template_name = 'emsapp/equipmentlist/equipmentlistCalibrationCheck.html'
@@ -527,7 +745,7 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
     
     def get_data_list(self):
         data_list = []
-        tool_list = EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(~Q(Deleted=True)).values()
+        tool_list = EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(Status='Active').filter(~Q(Deleted=True)).values()
         for tool in tool_list:
             next_date = tool['NextCalibratedDate']
             if next_date:
@@ -556,8 +774,11 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
             tg_list.append(EquipmentList.objects.filter(EquipmentNo=each).values()[0]['ToolingGroup'])
         tg_list_concat = list(set(tg_list))
         for tg in tg_list_concat:
+            max_LFQ = EquipmentList.objects.filter(ToolingGroup=tg).aggregate(Max('LimitFreezeQnty'))
             eq_count = tg_list.count(tg)
-            if (EquipmentList.objects.filter(ToolingGroup=tg).values().count() - eq_count) < EquipmentList.objects.filter(ToolingGroup=tg).values()[0]['LimitFreezeQnty']:
+            print(tg)
+            print(EquipmentList.objects.filter(ToolingGroup=tg).filter(Status='Active').filter(~Q(Deleted=True)).values(), eq_count, max_LFQ['LimitFreezeQnty__max'])
+            if (EquipmentList.objects.filter(ToolingGroup=tg).values().count() - eq_count) < max_LFQ['LimitFreezeQnty__max']:
                 error_msg.append('Action Denied Due to LF-Qnty of E-Group: ' + tg + ', Freeze: ' + str(EquipmentList.objects.filter(ToolingGroup=tg).values()[0]['LimitFreezeQnty']) + ', Remaining: ' + str(eq_count))
             else:
                 pass
@@ -606,9 +827,11 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                                 'CalibratedTicketCreateDate': datetime.date.today().strftime('%Y-%m-%d'),
                                 'CalibratedStartTime': datetime.date.today().strftime('%Y-%m-%d'),
                                 'CalibratedEndTime': (datetime.date.today() + relativedelta(days=14)).strftime('%Y-%m-%d'),
+                                'LastDueDate': datetime.date.today().strftime('%Y-%m-%d'),
+                                'NextDueDate': (datetime.date.today() + relativedelta(years=1)).strftime('%Y-%m-%d'),
                                 'ProdVendor': e_obj['ProdVendor'],
                                 'CaliVendor': vd_list[idx],
-                                'Location': 'Others'
+                                'Location': e_obj['Location']
                             })
                         except IndexError as e:
                             error_msg.append('Please Fill in Columns for The One Selected')
@@ -635,6 +858,8 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                                     row_cells[1].text = EquipmentList.objects.filter(EquipmentNo=eqno).values()[0]['ChDescription']
                                     document.add_page_break()
                                     document.save('demo.docx')
+                                    action_statement = 'Create ToolingCalibrationRecord with: ' + str(post.dict())
+                                    make_log(request, action_statement)
                                 else:
                                     error_msg.append('POST form is invalid; Submission CANCELED')
                                     form = ToolingCalibrationRecordForm()
@@ -651,7 +876,7 @@ class AssetCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVi
     
     def get_data_list(self):
         data_list = []
-        asset_list = EquipmentList.objects.filter(EquipmentType__icontains='Asset').filter(~Q(Deleted=True)).values()
+        asset_list = EquipmentList.objects.filter(EquipmentType__icontains='Asset').filter(Status='Active').filter(~Q(Deleted=True)).values()
         for asset in asset_list:
             data_list.append({'detail': asset})
         return data_list
@@ -709,12 +934,15 @@ class AssetCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVi
                             form.save()
                             eqno = form.cleaned_data['EquipmentNo']
                             loan_start = form.cleaned_data['LoanStartTime']
+                            loan_end = form.cleaned_data['LoanEndTime']
                             eq = EquipmentList.objects.get(EquipmentNo=eqno)
                             eq.Status = 'Loaned'
                             eq.LastModifyUser = str(request.user)
                             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
-                            eq.AssetLoanedReturnDate = datetime.datetime.strptime(str(loan_start), '%Y-%m-%d') + relativedelta(months=6)
+                            eq.AssetLoanedReturnDate = str(loan_end)
                             eq.save()
+                            action_statement = 'Create AssetLoanRecord with: ' + str(post.dict())
+                            make_log(request, action_statement)
                         else:
                             # form = AssetLoanRecordForm()
                             error_msg.append('POST form is invalid; Submission CANCELED')
@@ -734,7 +962,7 @@ class NonStockCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.For
     
     def get_data_list(self):
         data_list = []
-        nons_list = EquipmentList.objects.filter(~Q(Deleted=True)).values()
+        nons_list = EquipmentList.objects.filter(EquipmentType__icontains='NonS').filter(~Q(Deleted=True)).values()
         for nons in nons_list:
             data_list.append({'detail': nons})
         return data_list
@@ -771,10 +999,10 @@ class NonStockCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.For
                         'EquipmentNo': e_obj['EquipmentNo'],
                         'TicketCreateUser': request.user,
                         'TicketCreateTime': datetime.date.today().strftime('%Y-%m-%d'),
-                        'NonStockNo': request.POST.getlist('NonStockNo')[idx],
+                        'NonStockNo': e_obj['NonStockNo'],
                         'TransactionReqTime': request.POST.getlist('TransactionReqTime')[idx],
                         'TransactionReqUser': request.POST.getlist('TransactionReqUser')[idx],
-                        'TransactionFrom': request.POST.getlist('TransactionFrom')[idx],
+                        'TransactionFrom': e_obj['Location'],
                         'TransactionTo': request.POST.getlist('TransactionTo')[idx],
                         'TruckType': request.POST.getlist('TruckType')[idx],
                     })
@@ -789,14 +1017,16 @@ class NonStockCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.For
                         form = NonStockTransactionRecordForm(request.POST)
                         if form.is_valid():
                             form.save()
-                            eq = EquipmentList.objects(EquipmentNo=each)
-                            eq.Status = 'Trans'
+                            eq = EquipmentList.objects.get(EquipmentNo=each)
+                            eq.Status = 'InActive'
                             eq.LastModifyUser = str(request.user)
                             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
                             eq.LastNonStockShipDate = request.POST.getlist('TransactionReqTime')[idx]
                             eq.NonStockNo = request.POST.getlist('NonStockNo')[idx]
                             eq.Location = request.POST.getlist('TransactionTo')[idx]
                             eq.save()
+                            action_statement = 'Create NonStockTransactionRecord with: ' + str(post.dict())
+                            make_log(request, action_statement)
                         else:
                             form = NonStockTransactionRecordForm()
                             error_msg.append('POST form is invalid; Submission CANCELED')
@@ -816,7 +1046,7 @@ class TransCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVi
     
     def get_data_list(self):
         data_list = []
-        trans_list = EquipmentList.objects.filter(~Q(Deleted=True)).values()
+        trans_list = EquipmentList.objects.filter(Status='Active').filter(~Q(Deleted=True)).values()
         for trans in trans_list:
             data_list.append({'detail': trans})
         return data_list
@@ -873,22 +1103,27 @@ class TransCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVi
                 if form.is_valid():
                     form.save()
                     description = form.cleaned_data['Description']
-                    if 'E_' in description:
-                        pos = description.find('E_')
-                        eqno = description[pos: pos+8]
-                        eq = EquipmentList.objects.get(EquipmentNo=eqno)
-                        eq.Status = 'Trans'
-                        eq.LastModifyUser = str(request.user)
-                        eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
-                        eq.LastTransactionDate = request.POST.getlist('TransactionReqTime')[idx]
-                        eq.Location = request.POST.getlist('TransactionTo')[idx]
-                        eq.TransactionTicketNo = each
-                        eq.save()
+                    try:
+                        if 'E_' in description:
+                            pos = description.find('E_')
+                            eqno = description[pos: pos+8]
+                            eq = EquipmentList.objects.get(EquipmentNo=eqno)
+                            eq.LastModifyUser = str(request.user)
+                            eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
+                            eq.LastTransactionDate = request.POST.getlist('TransactionReqTime')[idx]
+                            eq.Location = request.POST.getlist('TransactionTo')[idx]
+                            eq.TransactionTicketNo = each
+                            eq.save()
+                            action_statement = 'Create TransactionRecord with: ' + str(post.dict())
+                            make_log(request, action_statement)
+                    except ObjectDoesNotExist:
+                        error_msg.append('Please input an existed EquipmentNo in the Description')
+                        return render(request, self.template_name, {'data_list': data_list, 'error_msg': error_msg, 'form': form})
+                    return redirect('/emsapp/transactionrecord')
                 else:
                     form = TransactionRecordForm()
                     error_msg.append('POST form is invalid; Submission CANCELED')
                     return render(request, self.template_name, {'data_list': data_list, 'error_msg': error_msg, 'form': form})
-            return redirect('/emsapp/transactionrecord')
         else:
             error_msg.append('Please Select One')
             form = TransactionRecordForm()
@@ -899,111 +1134,155 @@ class HomeView(PermissionRequiredMixin, generic.View):
 
     def asset(self):
         a_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Asset').all().count()
-        a_TMC1 = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Asset').filter(Location='TMC-1').count()
-        a_TMC2 = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Asset').filter(Location='TMC-2').count()
-        a_others = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Asset').filter((~Q(Location='TMC-1')&~Q(Location='TMC-2'))).count()
         
         year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
         month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
         day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
         print(date_dict)
         print(value_dict)
-        if year not in date_dict:
+        if year not in date_dict['Asset']:
             print('1')
-            date_dict[year] = {month: [day]}
-            value_dict[year] = {month: [a_amount-a_others]}
-        elif month not in date_dict[year]:
+            date_dict['Asset'][year] = {month: [day]}
+            value_dict['Asset'][year] = {month: [a_amount]}
+        elif month not in date_dict['Asset'][year]:
             print('2')
-            date_dict[year][month] = [day]
-            value_dict[year][month] = [a_amount-a_others]
-        elif day not in date_dict[year][month]:
+            date_dict['Asset'][year][month] = [day]
+            value_dict['Asset'][year][month] = [a_amount]
+        elif day not in date_dict['Asset'][year][month]:
             print('3')
-            date_dict[year][month].append(day)
-            value_dict[year][month].append(a_amount-a_others)
+            date_dict['Asset'][year][month].append(day)
+            value_dict['Asset'][year][month].append(a_amount)
         else:
             print('123')
             pass
+
         labels = {
-            'Location': ['TMC-1', 'TMC-2', 'others'],
-            'a_lineX': date_dict['2020']['Aug'],
+            'Location': [],
+            'a_lineX': date_dict['Asset']['2020']['Aug'],
         }
         data = {
             'a_amount': a_amount,
-            'a_location': [a_TMC1, a_TMC2, a_others],
-            'a_lineY': value_dict['2020']['Aug'],
+            'a_location': [],
+            'a_lineY': value_dict['Asset']['2020']['Aug'],
             'Asset': [],
         }
 
-        asset_list = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Asset').values()
-
+        asset_list = AssetLoanRecord.objects.filter(~Q(Deleted=True)).order_by('LoanEndTime').values()
         for asset in asset_list:
-            return_date = asset['AssetLoanedReturnDate']
+            return_date = asset['LoanEndTime']
             if return_date:
                 asset_date_delta = (return_date - datetime.date.today()).days
-                if 20 < asset_date_delta <= 30:
+                if asset_date_delta <= 40:
                     data['Asset'].append({'No': asset['AssetNo'], 'Date': asset_date_delta})
-                elif 10 < asset_date_delta <= 20:
-                    data['Asset'].append({'No': asset['AssetNo'], 'Date': asset_date_delta})
-                elif 0 <= asset_date_delta <= 10:
-                    data['Asset'].append({'No': asset['AssetNo'], 'Date': asset_date_delta})
-                elif asset_date_delta < 0:
-                    data['Asset'].append({'No': asset['AssetNo'], 'Date': asset_date_delta})
-                else:
-                    data['Asset'].append({'No': asset['AssetNo'], 'Date': asset_date_delta})
+
+        for loc_dict in Location.objects.all().values():
+            loc = loc_dict['Location']
+            labels['Location'].append(loc)
+            data['a_location'].append(EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Asset').filter(Location=loc).count())
 
         return render(self, 'emsapp/overview/asset.html', {'labels': labels, 'data': data,})
 
     def tool(self):
         t_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').all().count()
-        t_TMC1 = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').filter(Location='TMC-1').count()
-        t_TMC2 = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').filter(Location='TMC-2').count()
-        t_others = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').filter((~Q(Location='TMC-1')&~Q(Location='TMC-2'))).count()
+
+        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
+        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
+        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
+        print(date_dict)
+        print(value_dict)
+        if year not in date_dict['Tool']:
+            print('1')
+            date_dict['Tool'][year] = {month: [day]}
+            value_dict['Tool'][year] = {month: [t_amount]}
+        elif month not in date_dict['Tool'][year]:
+            print('2')
+            date_dict['Tool'][year][month] = [day]
+            value_dict['Tool'][year][month] = [t_amount]
+        elif day not in date_dict['Tool'][year][month]:
+            print('3')
+            date_dict['Tool'][year][month].append(day)
+            value_dict['Tool'][year][month].append(t_amount)
+        else:
+            print('123')
+            pass
 
         labels = {
-            'Location': ['TMC-1', 'TMC-2', 'others'],
+            'Location': [],
+            't_lineX': date_dict['Tool']['2020']['Aug'],
         }
         data = {
             't_amount': t_amount,
-            't_location': [t_TMC1, t_TMC2, t_others],
+            't_location': [],
+            't_lineY': value_dict['Tool']['2020']['Aug'],
             'Tool': [],
         }
-
-        tool_list = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').values()
+        
+        tool_list = ToolingCalibrationRecord.objects.filter(~Q(Deleted=True)).order_by('NextDueDate').values()
         for tool in tool_list:
-            next_date = tool['NextCalibratedDate']
+            next_date = tool['NextDueDate']
             if next_date:
                 tool_date_delta = (next_date - datetime.date.today()).days
-                if 20 < tool_date_delta <= 30:
+                if tool_date_delta <= 40:
                     data['Tool'].append({'No': tool['ToolingNo'], 'Date': tool_date_delta})
-                elif 10 < tool_date_delta <= 20:
-                    data['Tool'].append({'No': tool['ToolingNo'], 'Date': tool_date_delta})
-                elif 0 <= tool_date_delta <= 10:
-                    data['Tool'].append({'No': tool['ToolingNo'], 'Date': tool_date_delta})
-                elif tool_date_delta < 0:
-                    data['Tool'].append({'No': tool['ToolingNo'], 'Date': tool_date_delta})
-                else:
-                    data['Tool'].append({'No': tool['ToolingNo'], 'Date': tool_date_delta})
-        
+
+        for loc_dict in Location.objects.all().values():
+            loc = loc_dict['Location']
+            labels['Location'].append(loc)
+            data['t_location'].append(EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').filter(Location=loc).count())
+
+
         return render(self, 'emsapp/overview/tool.html', {'labels': labels, 'data': data,})
 
     def nonstock(self):
         n_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='NonS').all().count()
-        n_TMC1 = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='NonS').filter(Location='TMC-1').count()
-        n_TMC2 = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='NonS').filter(Location='TMC-2').count()
-        n_others = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='NonS').filter((~Q(Location='TMC-1')&~Q(Location='TMC-2'))).count()
+
+        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
+        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
+        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
+        if year not in date_dict['NonStock']:
+            print('1')
+            date_dict['NonStock'][year] = {month: [day]}
+            value_dict['NonStock'][year] = {month: [n_amount]}
+        elif month not in date_dict['NonStock'][year]:
+            print('2')
+            date_dict['NonStock'][year][month] = [day]
+            value_dict['NonStock'][year][month] = [n_amount]
+        elif day not in date_dict['NonStock'][year][month]:
+            print('3')
+            date_dict['NonStock'][year][month].append(day)
+            value_dict['NonStock'][year][month].append(n_amount)
+        else:
+            print('123')
+            pass
+        
         labels = {
-            'Location': ['TMC-1', 'TMC-2', 'others'],
+            'Location': [],
+            'n_lineX': date_dict['NonStock']['2020']['Aug'],
         }
         data = {
             'n_amount': n_amount,
-            'n_location': [n_TMC1, n_TMC2, n_others],
+            'n_location': [],
+            'n_lineY': value_dict['NonStock']['2020']['Aug'],
             'NonStock': [],
         }
-        
+
+        ns_list = NonStockTransactionRecord.objects.filter(~Q(Deleted=True)).order_by('TransactionReqTime').values()
+        for ns in ns_list:
+            date = ns['TransactionReqTime']
+            if date:
+                ns_date_delta = (datetime.date.today() - date).days
+                if ns_date_delta <= 180:
+                    data['NonStock'].append({'No': ns['NonStockNo'], 'Date': ns_date_delta})
+
+        for loc_dict in Location.objects.all().values():
+            loc = loc_dict['Location']
+            labels['Location'].append(loc)
+            data['n_location'].append(EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='NonS').filter(Location=loc).count())
+
         return render(self, 'emsapp/overview/nonstock.html', {'labels': labels, 'data': data,})
 
     def others(self):
-        o_obj = EquipmentList.objects.filter(~Q(Deleted=True)).filter(~(Q(EquipmentType__icontains='Asset')|Q(EquipmentType__icontains='Tool')|Q(EquipmentType__icontains='NonS')))
+        o_obj = EquipmentList.objects.filter(~Q(Deleted=True)).filter(Q(EquipmentType__icontains='Others'))
         o_amount = o_obj.all().count()
         o_TMC1 = o_obj.filter(Location='TMC-1').count()
         o_TMC2 = o_obj.filter(Location='TMC-2').count()
@@ -1012,12 +1291,43 @@ class HomeView(PermissionRequiredMixin, generic.View):
             'Location': ['TMC-1', 'TMC-2', 'others'],
         }
         data = {
-            'o_nmount': o_amount,
+            'o_amount': o_amount,
             'o_location': [o_TMC1, o_TMC2, o_others],
-            'NonStock': [],
         }
 
         return render(self, 'emsapp/overview/others.html', {'labels': labels, 'data': data,})
+
+    def info(self):
+        data = {
+            'Asset': [],
+            'Tool': [],
+            'NonStock': [],
+        }
+        asset_list = AssetLoanRecord.objects.filter(~Q(Deleted=True)).order_by('LoanEndTime').values()
+        for asset in asset_list:
+            return_date = asset['LoanEndTime']
+            if return_date:
+                asset_date_delta = (return_date - datetime.date.today()).days
+                if asset_date_delta <= 40:
+                    data['Asset'].append(asset)
+
+        tool_list = ToolingCalibrationRecord.objects.filter(~Q(Deleted=True)).order_by('NextDueDate').values()
+        for tool in tool_list:
+            next_date = tool['NextDueDate']
+            if next_date:
+                tool_date_delta = (next_date - datetime.date.today()).days
+                if tool_date_delta <= 40:
+                    data['Tool'].append(tool)
+
+        ns_list = NonStockTransactionRecord.objects.filter(~Q(Deleted=True)).order_by('TransactionReqTime').values()
+        for ns in ns_list:
+            date = ns['TransactionReqTime']
+            if date:
+                ns_date_delta = (datetime.date.today() - date).days
+                if ns_date_delta <= 180:
+                    data['NonStock'].append(ns)
+
+        return render(self, 'emsapp/overview/info.html', {'data': data,})
 
 class LoginView(LoginView):
     template_name = 'emsapp/registration/login.html'
@@ -1051,6 +1361,48 @@ class TrashBinView(PermissionRequiredMixin, generic.ListView):
         e_deleted = EquipmentList.objects.filter(Q(Deleted=True)).all()
         return render(self, 'emsapp/trashbin/equipment.html', {'equipment_list': e_deleted})
 
+    def trans(self):
+        tr_deleted = TransactionRecord.objects.filter(Q(Deleted=True)).all()
+        return render(self, 'emsapp/trashbin/trans.html', {'transaction_record': tr_deleted})
+
+    def search(self):
+        qs = search(self)
+        if self.path.split('/')[3] == 'equipment':
+            if qs:
+                return render(self, 'emsapp/trashbin/equipment.html', {'qs': qs})
+            elif self.GET.dict():
+                return render(self, 'emsapp/trashbin/equipment.html', {'equipment_list': ''})
+            else:
+                return render(self, 'emsapp/trashbin/equipmentSearch.html', {'equipment_list': EquipmentList.objects.filter(Q(Deleted=True))})
+        elif self.path.split('/')[3] == 'asset':
+            if qs:
+                return render(self, 'emsapp/trashbin/asset.html', {'qs': qs})
+            elif self.GET.dict():
+                return render(self, 'emsapp/trashbin/asset.html', {'assetloan_record': ''})
+            else:
+                return render(self, 'emsapp/trashbin/assetSearch.html', {'assetloan_record': AssetLoanRecord.objects.filter(Q(Deleted=True))})
+        elif self.path.split('/')[3] == 'tool':
+            if qs:
+                return render(self, 'emsapp/trashbin/tool.html', {'qs': qs})
+            elif self.GET.dict():
+                return render(self, 'emsapp/trashbin/tool.html', {'toolingcalibration_record': ''})
+            else:
+                return render(self, 'emsapp/trashbin/toolSearch.html', {'toolingcalibration_record': ToolingCalibrationRecord.objects.filter(Q(Deleted=True))})
+        elif self.path.split('/')[3] == 'nonstock':
+            if qs:
+                return render(self, 'emsapp/trashbin/nonstock.html', {'qs': qs})
+            elif self.GET.dict():
+                return render(self, 'emsapp/trashbin/nonstock.html', {'nonstocktransaction_record': ''})
+            else:
+                return render(self, 'emsapp/trashbin/nonstockSearch.html', {'nonstocktransaction_record': NonStockTransactionRecord.objects.filter(Q(Deleted=True))})
+        elif self.path.split('/')[3] == 'trans':
+            if qs:
+                return render(self, 'emsapp/trashbin/trans.html', {'qs': qs})
+            elif self.GET.dict():
+                return render(self, 'emsapp/trashbin/trans.html', {'transaction_record': ''})
+            else:
+                return render(self, 'emsapp/trashbin/transSearch.html', {'transaction_record': TransactionRecord.objects.filter(Q(Deleted=True))})
+
 class EquipmentFormView(PermissionRequiredMixin, generic.FormView):
     template_name = 'emsapp/equipmentlist/equipmentlistMain.html'
     # login_url = '/emsapp/accounts/login/'
@@ -1080,6 +1432,20 @@ class EquipmentFormView(PermissionRequiredMixin, generic.FormView):
     def get(self, request):
         if request.user.has_perm((e_admin_tuple, a_admin_tuple, t_admin_tuple, n_admin_tuple)):
             form = create_form(request)
+            for eq in EquipmentList.objects.all():
+                eq_type = eq.EquipmentType.split(';')
+                if eq.AssetNo and not 'Asset' in eq_type:
+                    eq_type.append('Asset')
+                    eq.EquipmentType = ';'.join(eq_type)
+                    eq.save()
+                elif eq.ToolingNo and not 'Tool' in eq_type:
+                    eq_type.append('Tool')
+                    eq.EquipmentType = ';'.join(eq_type)
+                    eq.save()
+                elif eq.NonStockNo and not 'NonS' in eq_type:
+                    eq_type.append('NonS')
+                    eq.EquipmentType = ';'.join(eq_type)
+                    eq.save()
             return render(request, self.template_name, {'equipment_list': self.e_obj.all(), 'form': form})
         else:
             return render(request, self.template_name, {'equipment_list': self.e_obj.all()})
@@ -1089,9 +1455,30 @@ class EquipmentFormView(PermissionRequiredMixin, generic.FormView):
             photo_list = []
             redirect_url = '/emsapp/equipmentlist/'
             form = EquipmentForm(request.POST, request.FILES)
-            data = {'equipment_list': self.e_obj.all(), 'form': form}
-            action = checkbox_validation(request, form, photo_list, redirect_url, self.template_name, data)
-            return action
+            tool_bool = create_validation(request, form, photo_list, redirect_url, self.template_name, {'equipment_list': self.e_obj.all(), 'form': form})
+            if form.is_valid():
+                instance = form.save(commit=False)
+                instance.EquipmentType = ";".join(request.POST.getlist('EquipmentType'))
+                for photo in request.FILES.getlist('PhotoLink'):
+                    photo_list.append(photo.name)
+                    instance.PhotoLink = photo
+                    instance.save()
+                photo_str = ";".join(photo_list)
+                instance.PhotoLink = photo_str
+                instance.save()
+                action_statement = 'Create EquipentList with: ' + str(request.POST.dict())
+                make_log(request, action_statement)
+                return redirect(redirect_url)
+            else:
+                if tool_bool == True:
+                    post = request.POST.copy()
+                    post.update({
+                        'LastCalibratedDate': datetime.date.today().strftime('%Y-%m-%d'),
+                        'NextCalibratedDate': (datetime.date.today()+relativedelta(years=1)).strftime('%Y-%m-%d'),
+                    })
+                    request.POST = post
+                    form = EquipmentForm(request.POST, request.FILES)
+                return render(request, self.template_name, {'equipment_list': self.e_obj.all(), 'form': form})
         else:
             return render(request, self.template_name, {'equipment_list': self.e_obj.all()})
         
@@ -1151,13 +1538,14 @@ class AssetLoanRecordFormView(LoginRequiredMixin, PermissionRequiredMixin, gener
     e_obj = EquipmentList.objects.filter(~Q(Deleted=True))
     a_obj = AssetLoanRecord.objects.filter(~Q(Deleted=True))
     
-    def get(self, request, eqpk):
-        form = create_form(request, eqpk)
+    def get(self, request, pk):
+        form = create_form(request, pk)
         return render(request, self.template_name, {'equipment_list': self.e_obj.all(), 'assetloan_record': self.a_obj.all(), 'form': form})
         
-    def post(self, request, eqpk):
+    def post(self, request, pk):
         form = AssetLoanRecordForm(request.POST, request.FILES)
         data = {'assetloan_record': self.a_obj.all(), 'form': form}
+        print(request.POST.get('l-end-time'))
         if form.is_valid():
             form.save()
             eqno = form.cleaned_data['EquipmentNo']
@@ -1168,6 +1556,21 @@ class AssetLoanRecordFormView(LoginRequiredMixin, PermissionRequiredMixin, gener
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.AssetLoanedReturnDate = datetime.datetime.strptime(str(loan_start), '%Y-%m-%d') + relativedelta(months=6)
             eq.save()
+            action_statement = 'Create AssetLoanRecord with: ' + str(request.POST.dict())
+            make_log(request, action_statement)
+            return redirect('/emsapp/assetloanrecord')
+        elif request.POST.get('l-end-time'):
+            asset_item = AssetLoanRecord.objects.get(pk=pk)
+            asset_item.ActualReturnDate = request.POST.get('l-end-time')
+            eq = EquipmentList.objects.get(EquipmentNo=asset_item.EquipmentNo)
+            eq.Status = 'Active'
+            eq.AssetLoanedReturnDate = request.POST.get('l-end-time')
+            eq.LastModifyUser = str(request.user)
+            eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
+            eq.save()
+            asset_item.save()
+            action_statement = 'Update Asset Loan End Date with: ' + request.POST.get('l-end-time') + ' for ' + asset_item.EquipmentNo
+            make_log(request, action_statement)
             return redirect('/emsapp/assetloanrecord')
         else:
             return render(request, self.template_name, data)
@@ -1213,6 +1616,7 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
         redirect_url = '/emsapp/toolingcalibrationrecord/'
         form = ToolingCalibrationRecordForm(request.POST, request.FILES)
         data = {'toolingcalibration_record': self.t_obj.all(), 'form': form}
+        print(request.POST.dict())
         if form.is_valid():
             form.save()
             eqno = form.cleaned_data['EquipmentNo']
@@ -1224,11 +1628,14 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
             eq.LastModifyUser = str(request.user)
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.save()
+            action_statement = 'Create ToolingCalibrationRecord with: ' + str(request.POST.dict())
+            make_log(request, action_statement)
             return redirect('/emsapp/toolingcalibrationrecord')
         elif request.POST.get('c-end-date'):
             tool_item = ToolingCalibrationRecord.objects.get(pk=pk)
             tool_item.CalibratedEndTime = request.POST.get('c-end-date')
-            eq = EquipmentList.objects.get(EquipmentNo=eqno)
+            if not tool_item.CalibratedStartTime:
+                tool_item.CalibratedStartTime = request.POST.get('c-end-date')
             eq = EquipmentList.objects.get(EquipmentNo=tool_item.EquipmentNo)
             eq.Status = 'Cali'
             eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
@@ -1239,6 +1646,8 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.save()
             tool_item.save()
+            action_statement = 'Update Cali End Date with: ' + request.POST.get('c-end-date') + ' for ' + tool_item.EquipmentNo
+            make_log(request, action_statement)
             return redirect('/emsapp/toolingcalibrationrecord')
         elif request.POST.get('m-start-date'):
             tool_item = ToolingCalibrationRecord.objects.get(pk=pk)
@@ -1249,16 +1658,22 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.save()
             tool_item.save()
+            action_statement = 'Update MQ Start Date with: ' + request.POST.get('m-start-date') + ' for ' + tool_item.EquipmentNo
+            make_log(request, action_statement)
             return redirect('/emsapp/toolingcalibrationrecord')
         elif request.POST.get('m-end-date'):
             tool_item = ToolingCalibrationRecord.objects.get(pk=pk)
             tool_item.MQEndTime = request.POST.get('m-end-date')
+            if not tool_item.MQStartTime:
+                tool_item.MQStartTime = request.POST.get('m-end-date')
             eq = EquipmentList.objects.get(EquipmentNo=tool_item.EquipmentNo)
             eq.Status = 'Active'
             eq.LastModifyUser = str(request.user)
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.save()
             tool_item.save()
+            action_statement = 'Update MQ End Date with: ' + request.POST.get('m-end-date') + ' for ' + tool_item.EquipmentNo
+            make_log(request, action_statement)
             return redirect('/emsapp/toolingcalibrationrecord')
         else:
             return render(request, self.template_name, data)
@@ -1310,13 +1725,15 @@ class NonStockTransactionRecordFormView(LoginRequiredMixin, PermissionRequiredMi
             form.save()
             eqno = form.cleaned_data['EquipmentNo']
             eq = EquipmentList.objects.get(EquipmentNo=eqno)
-            eq.Status = 'Trans'
+            eq.Status = 'InActive'
             eq.LastModifyUser = str(request.user)
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.LastNonStockShipDate = request.POST.getlist('TransactionReqTime')[idx]
             eq.NonStockNo = request.POST.getlist('NonStockNo')[idx]
             eq.Location = request.POST.getlist('TransactionTo')[idx]
             eq.save()
+            action_statement = 'Create NonStockTransactionRecord with: ' + str(request.POST.dict())
+            make_log(request, action_statement)
             return redirect('/emsapp/nonstocktransactionrecord')
         else:
             return render(request, self.template_name, data)
@@ -1363,17 +1780,22 @@ class TransactionRecordFormView(LoginRequiredMixin, PermissionRequiredMixin, gen
         if form.is_valid():
             form.save()
             description = form.cleaned_data['Description']
-            if 'E_' in description:
-                pos = description.find('E_')
-                eqno = description[pos: pos+8]
-                eq = EquipmentList.objects.get(EquipmentNo=eqno)
-                eq.Status = 'Trans'
-                eq.LastModifyUser = str(request.user)
-                eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
-                eq.LastTransactionDate = request.POST.getlist('TransactionReqTime')[idx]
-                eq.Location = request.POST.getlist('TransactionTo')[idx]
-                eq.TransactionTicketNo = each
-                eq.save()
+            try:
+                if 'E_' in description:
+                    pos = description.find('E_')
+                    eqno = description[pos: pos+8]
+                    eq = EquipmentList.objects.get(EquipmentNo=eqno)
+                    eq.LastModifyUser = str(request.user)
+                    eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
+                    eq.LastTransactionDate = request.POST.getlist('TransactionReqTime')[idx]
+                    eq.Location = request.POST.getlist('TransactionTo')[idx]
+                    eq.TransactionTicketNo = each
+                    eq.save()
+                    action_statement = 'Create TransactionRecord with: ' + str(request.POST.dict())
+                    make_log(request, action_statement)
+            except ObjectDoesNotExist:
+                    error_msg.append('Please input an existed EquipmentNo in the Description')
+                    return render(request, self.template_name, {'data_list': data_list, 'error_msg': error_msg, 'form': form})
             return redirect('/emsapp/transactionrecord')
         else:
             return render(request, self.template_name, {'form': form})

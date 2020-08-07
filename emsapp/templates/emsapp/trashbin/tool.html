@@ -4,7 +4,7 @@
 <div class="wrapper d-flex align-items-stretch">
     <nav id="sidebar">
         <div class="p-4">
-            <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home">
+            <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
                 <i class="fas fa-warehouse mr-4"></i>EMS
             </a>
             <ul class="list-unstyled components mb-5">
@@ -87,7 +87,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark mdb-color darken-3 mb-0">
             <div class="container">
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <button onclick="location.href='/emsapp/equipmentlist/search'" type="button" class="btn btn-white ml-auto mx-3 px-4 py-2">
+                    <button onclick="location.href='/emsapp/trashbin/tool/search'" type="button" class="btn btn-white ml-auto mx-3 px-4 py-2">
                         <i class="fas fa-search"></i>
                     </button>
                     <ul class="navbar-nav nav-flex-icons">
@@ -101,7 +101,9 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right dropdown-default"
                             aria-labelledby="navbarDropdownMenuLink-333">
-                            <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                            {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
+                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            {% endif %}
                             <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                             </div>
                         </li>
@@ -142,6 +144,11 @@
                             N.Trans
                         </button>
                     </div>
+                    <div class="btn-group ml-3" role="group" aria-label="Fifth group">
+                        <button onclick="location.href='/emsapp/trashbin/trans'" type="button" class="btn btn-yellow py-2 px-3">
+                            Trans
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-12">
                     <div class="card">
@@ -166,6 +173,7 @@
                                         <th scope="col th-sm">MQ End</th>
                                         <th scope="col th-sm">AlertTime</th>
                                         <th scope="col th-sm">Det.</th>
+                                        <th scope="col th-sm">Rec.</th>
                                     </tr>
                                 </thead>
                                 <tbody id="item-lists">
@@ -186,24 +194,34 @@
                                             <i class="fas fa-file-alt"></i>
                                         </a>
                                     </td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:toolingCalibrationRecovery' tool.TicketNo %}" onclick="return alert('Recovery Success!')">
+                                            <i class="fas fa-redo-alt"></i>
+                                        </a>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                                 {% elif qs %}
                                 {% for q in qs %}
                                 <tr>
-                                <th scope="row">{{ q.CountIndex }}</th>
-                                    <td>{{ q.AssetNo }}</td>
-                                    <td>{{ q.ToolingNo }}</td>
-                                    <td>{{ q.NonStockNo }}</td>
-                                    <td>{{ q.EquipmentOwnerName }}</td>
-                                    <td>{{ q.Name }}</td>
-                                    <td>{{ q.Location }}</td>
-                                    <td>{{ q.Site }}</td>
-                                    <td>{{ q.Status }}</td>
-                                    <td>{{ q.EquipmentType }}</td>
-                                    <td>
-                                        <a href="{% url 'emsapp:equipmentDetail' q.CountIndex %}">
+                                <th scope="row" class="align-middle">{{ q.TicketNo }}</th>
+                                    <td class="align-middle">{{ q.ToolingNo }}</td>
+                                    <td class="align-middle">{{ q.Name }}</td>
+                                    <td class="align-middle">{{ q.EnName }}</td>
+                                    <td class="align-middle">{{ q.CalibratedStartTime }}</td>
+                                    <td class="align-middle">{{ q.CalibratedEndTime }}</td>
+                                    <td class="align-middle">{{ q.Location }}</td>
+                                    <td class="align-middle">{{ q.MQStartTime }}</td>
+                                    <td class="align-middle">{{ q.MQEndTime }}</td>
+                                    <td class="align-middle">{{ q.AlertTime }}</td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:toolingCalibrationDetail' q.CountIndex %}">
                                             <i class="fas fa-file-alt"></i>
+                                        </a>
+                                    </td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'emsapp:toolingCalibrationRecovery' q.TicketNo %}" onclick="return alert('Recovery Success!')">
+                                            <i class="fas fa-redo-alt"></i>
                                         </a>
                                     </td>
                                 </tr>

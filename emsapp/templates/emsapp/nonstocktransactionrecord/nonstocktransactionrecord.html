@@ -101,13 +101,14 @@
                             <span>Hello, {{ user }}</span>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-333" data-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-333" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-user"></i>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right dropdown-default"
                             aria-labelledby="navbarDropdownMenuLink-333">
-                            <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                            {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
+                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            {% endif %}
                             <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                             </div>
                         </li>
@@ -149,10 +150,20 @@
                     </div>
                     <div class="px-3 table-responsive">
                         <table id="n-table" class="table table-hover" width="100%">
+                            <colgroup>
+                                <col span="1" style="width: 10%">
+                                <col span="1" style="width: 20%">
+                                <col span="1" style="width: 15%">
+                                <col span="1" style="width: 15%">
+                                <col span="1" style="width: 10%">
+                                <col span="1" style="width: 20%">
+                                <col span="1" style="width: 5%">
+                                <col span="1" style="width: 5%">
+                            </colgroup>
                             <thead class="blue-grey darken-2 text-white">
                                 <tr>
                                     <th scope="col th-sm">#</th>
-                                    <th scope="col th-sm">N.S. No</th>
+                                    <th scope="col th-sm">NonStock No</th>
                                     <th scope="col th-sm">TransFrom</th>
                                     <th scope="col th-sm">TransTo</th>
                                     <th scope="col th-sm">TruckType</th>
@@ -185,7 +196,7 @@
                                     <a href="{% url 'emsapp:nonStockUpdate' nonstock.TicketNo %}">
                                         <i class="fas fa-pen-square"></i>
                                     </a>
-                                    <a href="{% url 'emsapp:nonStockDelete' nonstock.TicketNo %}">
+                                    <a href="{% url 'emsapp:nonStockDelete' nonstock.TicketNo %}" onclick="return confirm('Are you sure to delete this row?')">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
@@ -212,7 +223,7 @@
                                     <a href="{% url 'emsapp:nonStockUpdate' q.TicketNo %}">
                                         <i class="fas fa-pen-square"></i>
                                     </a>
-                                    <a href="{% url 'emsapp:nonStockDelete' q.TicketNo %}">
+                                    <a href="{% url 'emsapp:nonStockDelete' q.TicketNo %}" onclick="return confirm('Are you sure to delete this row?')">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>

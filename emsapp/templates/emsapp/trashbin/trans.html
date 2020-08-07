@@ -52,7 +52,7 @@
                 </a>
                 <ul class="pl-3 collapse list-unstyled" id="select-multi-menu">
                   <li>
-                    <a href="/emsapp/equipmentlist/asset/check" id="e-calicheck-button">
+                    <a href="/emsapp/equipmentlist/asset/check">
                       <i class="fas fa-arrow-alt-circle-right pr-3"></i>Loan
                     </a>
                   </li>
@@ -87,7 +87,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark mdb-color darken-3 mb-0">
             <div class="container">
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <button onclick="location.href='/emsapp/trashbin/equipment/search'" type="button" class="btn btn-white ml-auto mx-3 px-4 py-2">
+                    <button onclick="location.href='/emsapp/trashbin/nonstock/search'" type="button" class="btn btn-white ml-auto mx-3 px-4 py-2">
                         <i class="fas fa-search"></i>
                     </button>
                     <ul class="navbar-nav nav-flex-icons">
@@ -111,13 +111,6 @@
                 </div>
             </div>
         </nav>
-        {% comment %} <div class="container">
-            <div class="row">
-                <div class="col-md-12 my-3">
-                    <h4 class="ml-auto my-3 font-weight-bold">Equipments Dashboard</h2>
-                </div>
-            </div>
-        </div> {% endcomment %}
         <div class="container">
             <div class="row">
                 <div class="col-md-7 my-3">
@@ -155,49 +148,41 @@
                         <div class="card-body card-body-cascade">
                             <div class="row">
                                 <div class="col-md-7 my-auto">
-                                    <h5 class="ml-auto my-auto font-weight-bold">Equipment</h5>
+                                    <h5 class="ml-auto my-auto font-weight-bold">Transaction</h5>
                                 </div>
                             </div>
                         </div>
                         <div class="px-3 table-responsive">
-                            <table id="e-table" class="table table-hover" width="100%">
-                                <thead class="teal darken-3 text-white">
+                            <table id="tr-table" class="table table-hover" width="100%">
+                                <thead class="yellow darken-3 text-white">
                                     <tr>
-                                        <th scope="col th-sm">#</th>
-                                        <th scope="col th-sm">A.</th>
-                                        <th scope="col th-sm">T.</th>
-                                        <th scope="col th-sm">N.S.</th>
-                                        <th scope="col th-sm">Owner</th>
-                                        <th scope="col th-sm">Name</th>
-                                        <th scope="col th-sm">Locat.</th>
-                                        <th scope="col th-sm">Site</th>
-                                        <th scope="col th-sm">Status</th>
-                                        <th scope="col th-sm">Type</th>
-                                        <th scope="col th-sm">Det.</th>
-                                        <th scope="col th-sm">Rec.</th>
-                                    </tr>
+                                    <th scope="col th-sm">#</th>
+                                    <th scope="col th-sm">T.R. No</th>
+                                    <th scope="col th-sm">TransFrom</th>
+                                    <th scope="col th-sm">TransTo</th>
+                                    <th scope="col th-sm">TruckType</th>
+                                    <th scope="col th-sm">TransReqUser</th>
+                                    <th scope="col th-sm">Det.</th>
+                                    <th scope="col th-sm">Rec.</th>
+                                </tr>
                                 </thead>
                                 <tbody id="item-lists">
-                                {% if equipment_list %}
-                                {% for equipment in equipment_list %}
+                                {% if transaction_record %}
+                                {% for trans in transaction_record %}
                                 <tr>
-                                <th scope="row" class="align-middle">{{ equipment.CountIndex }}</th>
-                                    <td class="align-middle">{{ equipment.AssetNo }}</td>
-                                    <td class="align-middle">{{ equipment.ToolingNo }}</td>
-                                    <td class="align-middle">{{ equipment.NonStockNo }}</td>
-                                    <td class="align-middle">{{ equipment.EquipmentOwnerName }}</td>
-                                    <td class="align-middle">{{ equipment.Name }}</td>
-                                    <td class="align-middle">{{ equipment.Location }}</td>
-                                    <td class="align-middle">{{ equipment.Site }}</td>
-                                    <td class="align-middle">{{ equipment.Status }}</td>
-                                    <td class="align-middle">{{ equipment.EquipmentType }}</td>
+                                <th scope="row" class="align-middle">{{ trans.TicketNo }}</th>
+                                    <td class="align-middle">{{ trans.TransactionTicketNo }}</td>
+                                    <td class="align-middle">{{ trans.TransactionFrom }}</td>
+                                    <td class="align-middle">{{ trans.TransactionTo }}</td>
+                                    <td class="align-middle">{{ trans.TruckType }}</td>
+                                    <td class="align-middle">{{ trans.TransactionReqUser }}</td>
                                     <td class="align-middle">
-                                        <a href="{% url 'emsapp:equipmentDetail' equipment.CountIndex %}">
+                                        <a href="{% url 'emsapp:transDetail' trans.TicketNo %}">
                                             <i class="fas fa-file-alt"></i>
                                         </a>
                                     </td>
                                     <td class="align-middle">
-                                        <a href="{% url 'emsapp:equipmentRecovery' equipment.CountIndex %}" onclick="return alert('Recovery Success!')">
+                                        <a href="{% url 'emsapp:transRecovery' trans.TicketNo %}" onclick="return alert('Recovery Success!')">
                                             <i class="fas fa-redo-alt"></i>
                                         </a>
                                     </td>
@@ -206,23 +191,19 @@
                                 {% elif qs %}
                                 {% for q in qs %}
                                 <tr>
-                                <th scope="row" class="align-middle">{{ q.CountIndex }}</th>
-                                    <td class="align-middle">{{ q.AssetNo }}</td>
-                                    <td class="align-middle">{{ q.ToolingNo }}</td>
-                                    <td class="align-middle">{{ q.NonStockNo }}</td>
-                                    <td class="align-middle">{{ q.EquipmentOwnerName }}</td>
-                                    <td class="align-middle">{{ q.Name }}</td>
-                                    <td class="align-middle">{{ q.Location }}</td>
-                                    <td class="align-middle">{{ q.Site }}</td>
-                                    <td class="align-middle">{{ q.Status }}</td>
-                                    <td class="align-middle">{{ q.EquipmentType }}</td>
+                                <th scope="row" class="align-middle">{{ q.TicketNo }}</th>
+                                    <td class="align-middle">{{ q.TransactionTicketNo }}</td>
+                                    <td class="align-middle">{{ q.TransactionFrom }}</td>
+                                    <td class="align-middle">{{ q.TransactionTo }}</td>
+                                    <td class="align-middle">{{ q.TruckType }}</td>
+                                    <td class="align-middle">{{ q.TransactionReqUser }}</td>
                                     <td class="align-middle">
-                                        <a href="{% url 'emsapp:equipmentDetail' q.CountIndex %}">
+                                        <a href="{% url 'emsapp:transDetail' q.TicketNo %}">
                                             <i class="fas fa-file-alt"></i>
                                         </a>
                                     </td>
                                     <td class="align-middle">
-                                        <a href="{% url 'emsapp:equipmentRecovery' q.CountIndex %}" onclick="return alert('Recovery Success!')">
+                                        <a href="{% url 'emsapp:transRecovery' q.TicketNo %}" onclick="return alert('Recovery Success!')">
                                             <i class="fas fa-redo-alt"></i>
                                         </a>
                                     </td>
@@ -242,7 +223,7 @@
 {% block js %}
 <script type="text/javascript">
 $(document).ready(function () {
-    $('#e-table').DataTable({
+    $('#tr-table').DataTable({
         'pagingType': 'simple_numbers'
     });
 });

@@ -24,48 +24,50 @@
                         <div class="form-group col-md-4 mb-0">
                             {{ form.EquipmentNo|tabindex:1|as_crispy_field }}
                             {{ form.AssetNo|tabindex:4|as_crispy_field }}
-                            {{ form.Name|tabindex:7|as_crispy_field }}
-                            {{ form.EquipmentOwnerID|tabindex:10|as_crispy_field }}
-                            {{ form.TeamGroup|tabindex:13|as_crispy_field }}
-                            {{ form.EquipmentGroup|tabindex:16|as_crispy_field }}
-                            {{ form.Site|tabindex:19|as_crispy_field }}
-                            {{ form.Length|tabindex:22|as_crispy_field }}
-                            {{ form.Weight|tabindex:25|as_crispy_field }}
-                            {{ form.ChDescription|tabindex:28|as_crispy_field }}
-                            {{ form.Specification|tabindex:31|as_crispy_field }}
+                            {{ form.NonStockNo|tabindex:7|as_crispy_field }}
+                            {{ form.Name|tabindex:10|as_crispy_field }}
+                            {{ form.EquipmentOwnerID|tabindex:13|as_crispy_field }}
+                            {{ form.TeamGroup|tabindex:16|as_crispy_field }}
+                            {{ form.EquipmentGroup|tabindex:19|as_crispy_field }}
+                            {{ form.Site|tabindex:22|as_crispy_field }}
+                            {{ form.Length|tabindex:25|as_crispy_field }}
+                            {{ form.Weight|tabindex:28|as_crispy_field }}
+                            {{ form.ChDescription|tabindex:31|as_crispy_field }}
+                            {{ form.Specification|tabindex:34|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-4 mb-0">
                             {{ form.LastModifyUser|tabindex:2|as_crispy_field }}
                             {{ form.ToolingNo|tabindex:5|as_crispy_field }}
-                            {{ form.EnName|tabindex:8|as_crispy_field }}
-                            {{ form.EquipmentOwnerName|tabindex:11|as_crispy_field }}
-                            {{ form.ToolingGroup|tabindex:14|as_crispy_field }}
-                            {{ form.Location|tabindex:17|as_crispy_field }}
-                            {{ form.ProdVendor|tabindex:20|as_crispy_field }}
-                            {{ form.Width|tabindex:23|as_crispy_field }}
-                            {{ form.Status|tabindex:26|as_crispy_field }}
-                            {{ form.EnDescription|tabindex:29|as_crispy_field }}
-                            {{ form.Limitations|tabindex:32|as_crispy_field }}
+                            {{ form.LastCalibratedDate|tabindex:8|as_crispy_field }}
+                            {{ form.EnName|tabindex:11|as_crispy_field }}
+                            {{ form.EquipmentOwnerName|tabindex:14|as_crispy_field }}
+                            {{ form.ToolingGroup|tabindex:17|as_crispy_field }}
+                            {{ form.Location|tabindex:20|as_crispy_field }}
+                            {{ form.ProdVendor|tabindex:23|as_crispy_field }}
+                            {{ form.Width|tabindex:26|as_crispy_field }}
+                            {{ form.Status|tabindex:29|as_crispy_field }}
+                            {{ form.EnDescription|tabindex:32|as_crispy_field }}
+                            {{ form.Limitations|tabindex:35|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-4 mb-0">
                             {{ form.LastModifyDate|tabindex:3|as_crispy_field }}
                             {{ form.ModuleNo|tabindex:6|as_crispy_field }}
-                            {{ form.SerialNumber|tabindex:9|as_crispy_field }}
-                            {{ form.EquipmentType|tabindex:12|as_crispy_field }}
-                            {{ form.PhotoLink|tabindex:15|as_crispy_field }}
+                            {{ form.NextCalibratedDate|tabindex:9|as_crispy_field }}
+                            {{ form.SerialNumber|tabindex:12|as_crispy_field }}
+                            {{ form.EquipmentType|tabindex:15|as_crispy_field }}
+                            {{ form.PhotoLink|tabindex:18|as_crispy_field }}
                             <div class="mt-n4">
                             <span class="col-form-label p-0 font-weight-bold">Current Link</span>
                             {% for photo in photos %}
                                 <a class="blue-text font-weight-bold" href="/media/{{ photo }}" name="nonStockNo">{{ forloop.counter }}</a>
                             {% endfor %}
                             </div>
-                            {{ form.CreateUser|tabindex:18|as_crispy_field }}
-                            {{ form.CreateDate|tabindex:21|as_crispy_field }}
-                            {{ form.Height|tabindex:24|as_crispy_field }}
-                            {{ form.LimitFreezeQnty|tabindex:27|as_crispy_field }}
-                            {{ form.LastCalibratedDate|tabindex:30|as_crispy_field }}
-                            {{ form.NextCalibratedDate|tabindex:33|as_crispy_field }}
-                            {{ form.Cost|tabindex:36|as_crispy_field }}
+                            {{ form.CreateUser|tabindex:21|as_crispy_field }}
+                            {{ form.CreateDate|tabindex:24|as_crispy_field }}
+                            {{ form.Height|tabindex:27|as_crispy_field }}
+                            {{ form.LimitFreezeQnty|tabindex:30|as_crispy_field }}
+                            {{ form.Cost|tabindex:33|as_crispy_field }}
+                            {{ form.AssetLoanedReturnDate|tabindex:36|as_crispy_field }}
                         </div>
                     </div>
                 </div>

@@ -97,7 +97,9 @@
                           </a>
                           <div class="dropdown-menu dropdown-menu-right dropdown-default"
                           aria-labelledby="navbarDropdownMenuLink-333">
-                          <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                          {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
+                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            {% endif %}
                           <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                           </div>
                       </li>
@@ -126,17 +128,12 @@
                   NonS
                 </button>
               </div>
-              <div class="btn-group ml-3" role="group" aria-label="Fourth group">
-                <button onclick="location.href='/emsapp/home/others'" type="button" class="btn btn-yellow py-2 px-3">
-                  Others
-                </button>
-              </div>
             </div>
           </div>
         </div>
         <div class="container">
           <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
               <div class="card h-100">
                 <div class="card-body card-body-cascade text-center">
                   <h1 class="font-weight-bold py-5 mb-0">{{ data.t_amount }}</h1>
@@ -145,7 +142,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
               <div class="card h-100">
                 <div class="card-body card-body-cascade text-center mt-2 px-0 py-auto">
                   <div class="view view-cascade">
@@ -155,40 +152,45 @@
                 </div>
               </div>
             </div>
-            <div class="container">
-              <div class="row my-5">
-                <div class="col-md-4">
-                  <div class="card">
-                    <div class="card-body card-body-cascade">
-                      <h5 class="ml-auto mb-3 font-weight-bold">Reminder</h5>
-                        <div class="px-3 table-responsive">
-                          <table id="overview-t-table" class="table table-hover" width="100%">
-                            <thead class="text-white orange">
-                              <tr>
-                                <th scope="col th-sm">ToolingNo</th>
-                                <th scope="col th-sm">Date</th>
-                              </tr>
-                            </thead>
-                            <tbody id="item-lists">
-                            {% for tool in data.Tool %}
-                              <tr>
-                                <th scope="row">{{ tool.No }}</th>
-                                <td>{{ tool.Date }}</td>
-                              </tr>
-                            {% endfor %}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+          </div>
+        </div>
+        <div class="container">
+          <div class="row my-5">
+            <div class="col-md-12">
+              <div class="card h-100">
+                <div class="card-body card-body-cascade">
+                  <h5 class="ml-auto mb-3 font-weight-bold">Reminder</h5>
+                    <div class="px-3 table-responsive">
+                      <table id="overview-t-table" class="table table-hover" width="100%">
+                        <thead class="text-white orange">
+                          <tr>
+                            <th scope="col th-sm">ToolingNo</th>
+                            <th scope="col th-sm">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody id="item-lists">
+                        {% for tool in data.Tool %}
+                          <tr>
+                            <th scope="row">{{ tool.No }}</th>
+                            <td>{{ tool.Date }}</td>
+                          </tr>
+                        {% endfor %}
+                        </tbody>
+                      </table>
                     </div>
-                  </div>
-                  <div class="col-md-8">
-                    <div class="card">
-                      <div class="card-body card-body-cascade">
-                        <h5 class="ml-auto mb-3 font-weight-bold">Monthly Qnty Report</h5>
-                        <div class="px-3 table-responsive">
-                        </div>
-                      </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="container">
+          <div class="row my-5">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-body card-body-cascade">
+                    <h5 class="ml-auto mb-3 font-weight-bold">Monthly Qnty Report</h5>
+                    <div style="width:75%;">
+                      <canvas id="canvas"></canvas>
                     </div>
                   </div>
                 </div>
@@ -200,12 +202,12 @@
     </div>
   </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
-<script>
+<script type="text/javascript">
   $(document).ready(function () {
     $('#overview-t-table').DataTable({
-        'pagingType': 'simple_numbers'
+        'pagingType': 'simple_numbers',
+        "pageLength": 2
     });
   });
   var toolConfig = {
@@ -214,7 +216,7 @@
       datasets: [{
         data: {{ data.t_location }},
         backgroundColor: [
-          '#ff9800', '#ffa726', '#ffb74d'
+          '#ff9800', '#ffa726', '#ffb74d', '#ffcc80', '#ffe0b2'
         ],
         label: 'Tool Location'
       }],
@@ -230,13 +232,69 @@
   window.onload = function() {
     var ctx = document.getElementById('tool-pie-chart').getContext('2d');
     window.toolPie = new Chart(ctx, toolConfig);
+    var lineCtx = document.getElementById('canvas').getContext('2d');
+		window.myLine = new Chart(lineCtx, lineConfig);
   };
   $('#tool-pie-chart').click(function(e) {
     var activePoints = toolPie.getElementsAtEvent(e);
     var query = toolPie.data.labels[activePoints[0]._index]
-    location.href = '/emsapp/equipmentlist/search/?assetNo=&ownerName=&eqName=&toolNo=&enName=&location=' + query + '&nonStockNo=&site=&type=Tool'
+    location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&toolNo=&ownerName=&location='+query+'&nonStockNo=&site=&type=Tool'
     // => activePoints is an array of points on the canvas that are at the same position as the click event.
   });
+  var lineConfig = {
+		type: 'line',
+		data: {
+			labels: {{ labels.t_lineX|safe }},
+			datasets: [{
+				label: 'Filled',
+				backgroundColor: ['#ff9800'],
+				borderColor: ['#ff9800'],
+				data: {{ data.t_lineY }},
+				fill: true,
+			}]
+		},
+		options: {
+			responsive: true,
+			tooltips: {
+				mode: 'index',
+				intersect: false,
+			},
+			hover: {
+				mode: 'nearest',
+				intersect: true
+			},
+			scales: {
+				x: {
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Month'
+					}
+				},
+				y: {
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Value'
+					}
+				},
+        xAxes: [{
+          gridLines: {
+            display: false,
+            drawOnChartArea: false,
+            drawTicks: false
+          }
+        }],
+        yAxes: [{
+          gridLines: {
+            display: false,
+            drawOnChartArea: false,
+            drawTicks: false
+          }
+        }]
+			}
+		}
+	};
 </script>
 
 {% endblock %}

@@ -27,20 +27,20 @@ class EquipmentList(models.Model):
     Site = models.CharField(max_length=255, default='')
     ProdVendor = models.CharField(max_length=255, default='')
     CreateDate = models.DateField(default=datetime.date.today().strftime('%Y-%m-%d'))
-    Length = models.FloatField(null=True, default=None)
-    Width = models.FloatField(null=True, default=None)
-    Height = models.FloatField(null=True, default=None)
-    Weight = models.FloatField(null=True, default=None)
+    Length = models.FloatField(null=True, default=0)
+    Width = models.FloatField(null=True, default=0)
+    Height = models.FloatField(null=True, default=0)
+    Weight = models.FloatField(null=True, default=0)
     Status = models.CharField(max_length=255, default='')
-    Cost = models.FloatField(null=True, blank=True, default=None)
+    Cost = models.FloatField(null=True, blank=True, default=0)
     ChDescription = models.CharField(max_length=255, blank=True, default='')
     EnDescription = models.CharField(max_length=255, blank=True, default='')
     LimitFreezeQnty = models.IntegerField(default=1, validators=[RegexValidator(r'^[0-9]+$')])
     Specification = models.CharField(max_length=255, blank=True, default='')
     Limitations = models.CharField(max_length=255, blank=True, default='')
 
-    LastCalibratedDate = models.DateField(null=True, blank=True, default=None)
-    NextCalibratedDate = models.DateField(null=True, blank=True, default=None)
+    LastCalibratedDate = models.DateField(null=True, blank=True)
+    NextCalibratedDate = models.DateField(null=True, blank=True)
     PlanCalDate = models.DateField(null=True, blank=True, default=None)
     
     AssetLoanedReturnDate = models.DateField(null=True, blank=True, default=None)
@@ -50,6 +50,7 @@ class EquipmentList(models.Model):
 
     NonStockNo = models.CharField(max_length=255, blank=True, default='', validators=[RegexValidator(r'^[0-9]+$')])
     LastNonStockShipDate = models.DateField(blank=True, default=datetime.date.today().strftime('%Y-%m-%d'))
+    NonStockSpace = models.FloatField(null=True, blank=True, default=0)
 
     LastModifyDate = models.DateField(default=datetime.date.today().strftime('%Y-%m-%d'))
     LastModifyUser = models.CharField(max_length=255, default='')
@@ -69,10 +70,11 @@ class AssetLoanRecord(models.Model):
     IsLongTermEvent = models.BooleanField(default=True)
     LoanVendor = models.CharField(max_length=255, default='')
     Borrower = models.CharField(max_length=255, default='')
-    Value = models.FloatField(null=True, blank=True, default=None)
+    Value = models.FloatField(null=True, blank=True, default=0)
     Location = models.CharField(max_length=255, default='')
     AssetLoanDocument = models.FileField(blank=True)
     PhotoLink = models.CharField(max_length=255, default='')
+    ActualReturnDate = models.DateField(null=True, blank=True)
     Deleted = models.BooleanField(default=False)
 
     def __str__(self):
@@ -90,9 +92,8 @@ class NonStockTransactionRecord(models.Model):
     TransactionReqUser = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9]+$')])
     TransactionFrom = models.CharField(max_length=255, default='')
     TransactionTo = models.CharField(max_length=255, default='')
-    # FinalFixedLocation = ...
+    
     TruckType = models.CharField(max_length=255, default='')
-    # LastTransactionDate = models.DateTimeField(null=True)   # Update to Main List
     # TicketRemark = models.CharField(max_length=255, null=True)
     Description = models.CharField(max_length=255, null=True, blank=True, default='')
     OtherDemand = models.CharField(max_length=255, null=True, blank=True, default='')
@@ -121,8 +122,8 @@ class ToolingCalibrationRecord(models.Model):
     LastDueDate = models.DateField(null=True, blank=True, default=None)
     NextDueDate = models.DateField(null=True, blank=True, default=None)
     CalibratedReport = models.FileField(blank=True)
-    UnitPrice = models.FloatField(null=True, blank=True, default=None)
-    CalibratedCost = models.FloatField(null=True, blank=True, default=None)
+    UnitPrice = models.FloatField(null=True, blank=True, default=0)
+    CalibratedCost = models.FloatField(null=True, blank=True, default=0)
     CalibratedEndTime = models.DateField(default=(datetime.date.today() + relativedelta(days=14)).strftime('%Y-%m-%d'))
     Comment = models.CharField(max_length=255, null=True, blank=True, default='')
     
@@ -146,7 +147,6 @@ class TransactionRecord(models.Model):
     TransactionReqUser = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9]+$')])
     TransactionFrom = models.CharField(max_length=255, default='')
     TransactionTo = models.CharField(max_length=255, default='')
-    # FinalFixedLocation = ...
     TruckType = models.CharField(max_length=255, default='')
     # LastTransactionDate = models.DateTimeField(null=True)   # Update to Main List
     # TicketRemark = models.CharField(max_length=255, null=True)
@@ -168,12 +168,6 @@ class ToolingGroup(models.Model):
 
     def __unicode__(self):
         return self.ToolingGroupName
-
-class Size(models.Model):
-    Size = models.CharField(max_length=255, default='')
-
-    def __unicode__(self):
-        return self.Size
 
 class TeamGroup(models.Model):
     TeamGroupName = models.CharField(max_length=255, default='')
@@ -228,3 +222,12 @@ class Borrower(models.Model):
 
     def __unicode__(self):
         return self.BorrowerName
+
+class ActionLog(models.Model):
+    User = models.CharField(max_length=255, default='')
+    Action = models.TextField(default='')
+    Date = models.DateField(null=True, blank=True, default=datetime.date.today().strftime('%Y-%m-%d'))
+    Time = models.TimeField(null=True, blank=True, default=datetime.datetime.now().time().strftime('%H:%M:%S'))
+
+    def __str__(self):
+        return str(self.User)

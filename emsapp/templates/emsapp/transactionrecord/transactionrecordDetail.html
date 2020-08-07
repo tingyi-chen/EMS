@@ -102,7 +102,9 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right dropdown-default"
                             aria-labelledby="navbarDropdownMenuLink-333">
-                            <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                            {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
+                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            {% endif %}
                             <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                             </div>
                         </li>
@@ -139,8 +141,8 @@
                                     </div>
                                 </div>
                                 <div class="col-md-5 text-md-left ml-3 mt-3">
-                                    <span>Trans No</span>
-                                    <p class="h4 font-weight-bold mb-4">{{ transactionrecord.TransactionNo }}</p>
+                                    <span>Trans Ticket No</span>
+                                    <p class="font-weight-bold">{{ transactionrecord.TransactionTicketNo }}</p>
                                     <span>Truck Type</sapn>
                                     <p class="font-weight-bold">{{ transactionrecord.TruckType }}</p>
                                     <span>Tranaction From</span>
@@ -162,20 +164,18 @@
                         <h5 class="ml-auto mb-3 font-weight-bold">Full Detail</h5>
                             <div class="row">
                                 <div class="col-md-4 text-md-left ml-3 mt-3">
-                                    <span>Trans Ticket No</span>
-                                    <p class="font-weight-bold">{{ transactionrecord.TransactionTicketNo }}</p>
                                     <span>Equipment No</span>
                                     <p class="font-weight-bold">{{ transactionrecord.EquipmentNo }}</p>
                                     <span>Ticket Create User</span>
                                     <p class="font-weight-bold">{{ transactionrecord.TicketCreateUser }}</p>
+                                    <span>Ticket Create Time</span>
+                                    <p class="font-weight-bold">{{ transactionrecord.TicketCreateTime }}</p>
                                 </div>
                                 <div class="col-md-4 text-md-left ml-3 mt-3">
                                     <span>Transaction Request User</span>
                                     <p class="font-weight-bold">{{ transactionrecord.TransactionReqUser }}</p>
                                     <span>Transaction Request Time</span>
                                     <p class="font-weight-bold">{{ transactionrecord.TransactionReqTime }}</p>
-                                    <span>Ticket Create Time</span>
-                                    <p class="font-weight-bold">{{ transactionrecord.TicketCreateTime }}</p>
                                 </div>
                                 <div class="col-md-3 text-md-left ml-3 mt-3">
                                     <span>Description</span>

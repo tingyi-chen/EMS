@@ -2,17 +2,17 @@
 
 {% load crispy_forms_tags %}
 
-{% block title %}Trans Search{% endblock %}
+{% block title %}TrashBin Transaction Search{% endblock %}
 
 {% block content %}
-<div class="modal fade" id="tr-search-modal" tabindex="-1" role="dialog" aria-labelledby="Create" aria-hidden="true">
+<div class="modal fade" id="tr-trash-search-modal" tabindex="-1" role="dialog" aria-labelledby="Create" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            <form id="tr-search-form" class="mb-0" method="GET" action="/emsapp/transactionrecord/search/">
+            <form id="tr-trash-search-form" class="mb-0" method="GET" action="/emsapp/trashbin/tool/search">
                 <div class="modal-header pink">
                     <h5 class="modal-title text-white" id="create-label">Search</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true" onclick="location.href='/emsapp/equipmentlist'">&times;</span>
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -44,16 +44,16 @@
     </div>
 </div>
 
-{% include './transactionrecord.html'%}
+{% include './tool.html'%}
 
 {% endblock%}
 
 {% block js%}
 <script type='text/javascript'>
 $(document).ready(function(e) {
-    $('#tr-search-modal').modal('show');
-    $('#tr-search-modal').on('hidden.bs.modal', function(e) {
-        window.location.href = '/emsapp/transactionrecord';
+    $('#tr-trash-search-modal').modal('show');
+    $('#tr-trash-search-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/trashbin/trans';
     });
 });
 </script>

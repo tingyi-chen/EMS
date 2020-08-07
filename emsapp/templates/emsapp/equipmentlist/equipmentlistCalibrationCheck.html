@@ -101,7 +101,7 @@ label {
             <nav class="navbar navbar-expand-lg navbar-dark mdb-color darken-3 mb-0">
                 <div class="container">
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav nav-flex-icons ml-auto">
+                        <ul class="navbar-nav nav-flex-icons">
                             <li class="nav-item white-text my-auto">
                                 <span>Hello, {{ user }}</span>
                             </li>
@@ -112,7 +112,9 @@ label {
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right dropdown-default"
                                 aria-labelledby="navbarDropdownMenuLink-333">
-                                <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                                {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
+                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            {% endif %}
                                 <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                                 </div>
                             </li>
@@ -161,15 +163,14 @@ label {
                                             </tr>
                                         </thead>
                                         <colgroup>
+                                            <col style="width: 10%;">
+                                            <col style="width: 15%;">
+                                            <col style="width: 15%;">
+                                            <col style="width: 10%;">
+                                            <col style="width: 10%;">
+                                            <col style="width: 15%;">
                                             <col style="width: 5%;">
-                                            <col style="width: 9%;">
-                                            <col style="width: 9%;">
                                             <col style="width: 15%;">
-                                            <col style="width: 15%;">
-                                            <col style="width: 5%;">
-                                            <col style="width: 15%;">
-                                            <col style="width: 15%;">
-                                            <col style="width: 12%;">
                                             <col style="width: 5%;">
                                         </colgroup>
                                         <tbody id="item-lists">

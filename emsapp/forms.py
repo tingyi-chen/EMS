@@ -1,5 +1,5 @@
 from django import forms
-from .models import EquipmentList, NonStockTransactionRecord, AssetLoanRecord, ToolingCalibrationRecord, EquipmentGroup, ToolingGroup, Location, Site, Status, TeamGroup, Truck, CaliVendor, Size, ProdVendor, LoanVendor, Borrower, TransactionRecord
+from .models import EquipmentList, NonStockTransactionRecord, AssetLoanRecord, ToolingCalibrationRecord, EquipmentGroup, ToolingGroup, Location, Site, Status, TeamGroup, Truck, CaliVendor, ProdVendor, LoanVendor, Borrower, TransactionRecord
 import datetime
 from bootstrap_datepicker_plus import DatePickerInput
 from tempus_dominus.widgets import DatePicker
@@ -9,6 +9,7 @@ class EquipmentForm(forms.ModelForm):
     TYPE_CHOICES = (
         ('Asset', 'Asset'),
         ('Tool', 'Tool'),
+        ('NonS', 'NonS'),
         ('Others', 'Others')
     )
     
@@ -60,7 +61,6 @@ class EquipmentForm(forms.ModelForm):
         self.fields['Location'] = forms.ChoiceField(choices=location)
         self.fields['ProdVendor'] = forms.ChoiceField(choices=prod_vendor)
         self.fields['ProdVendor'].label = "ProdVendor"
-        self.fields['NextCalibratedDate'].initial = (datetime.date.today()+relativedelta(years=+1)).strftime('%Y-%m-%d')
 
 class AssetLoanRecordForm(forms.ModelForm):
     class Meta:
@@ -144,7 +144,6 @@ class ToolingCalibrationRecordForm(forms.ModelForm):
         next_due_date = kwargs.pop('next_due_date', None)
         kwargs['initial'] = {'CalibratedTicketNo': form_tcno, 'EquipmentNo': form_eqno, 'ToolingNo': form_tlno, 'Name': form_name, 'EnName': form_en_name, 'ModuleNo': form_mdno, 'PhotoLink': photo, 'form_site': form_site, 'ProdVendor': pr_vendor, 'Location': location, 'LastDueDate': last_due_date, 'NextDueDate': next_due_date}
         super(ToolingCalibrationRecordForm, self).__init__(*args, **kwargs)
-        location = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         prod_vendor = [(i['ProdVendorName'], i['ProdVendorName']) for i in ProdVendor.objects.values('ProdVendorName').distinct()]
         cali_vendor = [(i['CaliVendorName'], i['CaliVendorName']) for i in CaliVendor.objects.values('CaliVendorName').distinct()]
         self.fields['CalibratedTicketNo'].widget.attrs['readonly'] = True

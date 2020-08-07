@@ -107,7 +107,9 @@
                             </a>
                             <div class="dropdown-menu dropdown-menu-right dropdown-default"
                             aria-labelledby="navbarDropdownMenuLink-333">
-                            <a class="dropdown-item" href="/emsapp/profile">Profile</a>
+                            {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
+                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            {% endif %}
                             <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                             </div>
                         </li>
@@ -168,7 +170,7 @@
                                         <th scope="col th-sm">T.</th>
                                         <th scope="col th-sm">N.S.</th>
                                         <th scope="col th-sm">Owner</th>
-                                        <th scope="col th-sm">Name</th>
+                                        <th scope="col th-sm">EnName</th>
                                         <th scope="col th-sm">Locat.</th>
                                         <th scope="col th-sm">Site</th>
                                         <th scope="col th-sm">Status</th>
@@ -192,7 +194,7 @@
                                     <td class="align-middle">{{ equipment.ToolingNo }}</td>
                                     <td class="align-middle">{{ equipment.NonStockNo }}</td>
                                     <td class="align-middle">{{ equipment.EquipmentOwnerName }}</td>
-                                    <td class="align-middle">{{ equipment.Name }}</td>
+                                    <td class="align-middle">{{ equipment.EnName }}</td>
                                     <td class="align-middle">{{ equipment.Location }}</td>
                                     <td class="align-middle">{{ equipment.Site }}</td>
                                     <td class="align-middle">{{ equipment.Status }}</td>
@@ -213,19 +215,24 @@
                                         </a>
                                     </td>
                                     <td class="align-middle">
-                                        {% if 'Asset' in equipment.EquipmentType and perms.emsapp.add_assetloanrecord %}
+                                        {% if 'Asset' in equipment.EquipmentType and perms.emsapp.add_assetloanrecord and equipment.Status == 'Active' %}
                                         <a href="{% url 'emsapp:assetLoanForm' equipment.CountIndex %}">
                                             <i class="fas fa-arrow-alt-circle-right"></i>
                                         </a>
                                         {% endif %}
-                                        {% if 'Tool' in equipment.EquipmentType and perms.emsapp.add_toolingcalibrationrecord%}
+                                        {% if 'Tool' in equipment.EquipmentType and perms.emsapp.add_toolingcalibrationrecord and equipment.Status == 'Active' %}
                                         <a href="{% url 'emsapp:toolingCalibrationForm' equipment.CountIndex %}">
                                             <i class="fas fa-tools"></i>
                                         </a>
                                         {% endif %}
-                                        {% if 'NonS' in equipment.EquipmentType and perms.emsapp.add_nonstocktransactionrecord %}
+                                        {% if perms.emsapp.add_nonstocktransactionrecord and equipment.Status == 'Active' %}
                                         <a href="{% url 'emsapp:nonStockForm' equipment.CountIndex %}">
                                             <i class="fas fa-truck"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.emsapp.add_transactionrecord and equipment.Status == 'Active' %}
+                                        <a href="{% url 'emsapp:transForm' equipment.CountIndex %}">
+                                            <i class="fas fa-exchange-alt pr-3"></i>
                                         </a>
                                         {% endif %}
                                     </td>
@@ -261,19 +268,24 @@
                                         </a>
                                     </td>
                                     <td class="align-middle">
-                                        {% if 'Asset' in q.EquipmentType and perms.emsapp.add_assetloanrecord %}
+                                        {% if 'Asset' in q.EquipmentType and perms.emsapp.add_assetloanrecord and q.Status == 'Active' %}
                                         <a href="{% url 'emsapp:assetLoanForm' q.CountIndex %}">
                                             <i class="fas fa-arrow-alt-circle-right"></i>
                                         </a>
                                         {% endif %}
-                                        {% if 'Tool' in q.EquipmentType and perms.emsapp.add_toolingcalibrationrecord %}
+                                        {% if 'Tool' in q.EquipmentType and perms.emsapp.add_toolingcalibrationrecord and q.Status == 'Active'%}
                                         <a href="{% url 'emsapp:toolingCalibrationForm' q.CountIndex %}">
                                             <i class="fas fa-tools"></i>
                                         </a>
                                         {% endif %}
-                                        {% if 'NonS' in q.EquipmentType and perms.emsapp.add_nonstocktransactionrecord %}
+                                        {% if 'NonS' in q.EquipmentType and perms.emsapp.add_nonstocktransactionrecord and q.Status == 'Active'%}
                                         <a href="{% url 'emsapp:nonStockForm' q.CountIndex %}">
                                             <i class="fas fa-truck"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.emsapp.add_transactionrecord and q.Status == 'Active' %}
+                                        <a href="{% url 'emsapp:transForm' q.CountIndex %}">
+                                            <i class="fas fa-exchange-alt pr-3"></i>
                                         </a>
                                         {% endif %}
                                     </td>
@@ -294,7 +306,7 @@
 <script type="text/javascript">
 $(document).ready(function () {
     $('#e-table').DataTable({
-        'pagingType': 'simple_numbers'
+        'pagingType': 'simple_numbers',
     });
 });
 </script>

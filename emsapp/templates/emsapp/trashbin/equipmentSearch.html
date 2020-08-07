@@ -2,13 +2,13 @@
 
 {% load crispy_forms_tags %}
 
-{% block title %}Equipment List Search{% endblock %}
+{% block title %}TrashBin Equipment Search{% endblock %}
 
 {% block content %}
-<div class="modal fade" id="e-search-modal" tabindex="-1" role="dialog" aria-labelledby="Create" aria-hidden="true">
+<div class="modal fade" id="e-trash-search-modal" tabindex="-1" role="dialog" aria-labelledby="Create" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            <form id="e-search-form" class="mb-0" method="GET" action="/emsapp/equipmentlist/search">
+            <form id="e-trash-search-form" class="mb-0" method="GET" action="/emsapp/trashbin/equipment/search">
                 <div class="modal-header pink">
                     <h5 class="modal-title text-white" id="create-label">Search</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
@@ -20,8 +20,8 @@
                         <div class="col-sm-4">
                             <label for="message-text" class="col-form-label">Asset No</label>
                             <input type="text" id="search-owner-name" class="form-control" name="assetNo" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
-                            <label for="message-text" class="col-form-label">Equipment Eng Name</label>
-                            <input type="text" id="search-eq-name" class="form-control" name="enName" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                            <label for="message-text" class="col-form-label">Equipment Name</label>
+                            <input type="text" id="search-eq-name" class="form-control" name="eqName" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
                             <label for="message-text" class="col-form-label">Status</label>
                             <input type="text" id="search-eq-name" class="form-control" name="status" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
                         </div>
@@ -52,16 +52,16 @@
     </div>
 </div>
 
-{% include './equipmentlist.html'%}
+{% include './equipment.html'%}
 
 {% endblock%}
 
 {% block js%}
 <script type='text/javascript'>
 $(document).ready(function(e) {
-    $('#e-search-modal').modal('show');
-    $('#e-search-modal').on('hidden.bs.modal', function(e) {
-        window.location.href = '/emsapp/equipmentlist';
+    $('#e-trash-search-modal').modal('show');
+    $('#e-trash-search-modal').on('hidden.bs.modal', function(e) {
+        window.location.href = '/emsapp/trashbin/equipment';
     });
 });
 </script>
