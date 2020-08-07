@@ -41,7 +41,6 @@ class EquipmentForm(forms.ModelForm):
         t_group = [(i['ToolingGroupName'], i['ToolingGroupName']) for i in ToolingGroup.objects.values('ToolingGroupName').distinct()]
         status = [(i['Status'], i['Status']) for i in Status.objects.values('Status').distinct()]
         site = [(i['Site'], i['Site']) for i in Site.objects.values('Site').distinct()]
-        size = [(i['Size'], i['Size']) for i in Size.objects.values('Size').distinct()]
         self.fields['EquipmentNo'].widget.attrs['readonly'] = True
         self.fields['LastModifyUser'].widget.attrs['readonly'] = True
         self.fields['LastModifyUser'].initial = user
