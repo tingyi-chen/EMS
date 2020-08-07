@@ -392,7 +392,9 @@ def create_form(request, *args, **kwargs):
             form_ntno = 'N_' + format(1, '06d')
         e_obj = EquipmentList.objects.filter(CountIndex=eqpk).values()[0]
         form_eqno = e_obj['EquipmentNo']
-        form = NonStockTransactionRecordForm(user=request.user, form_ntno=form_ntno, form_eqno=form_eqno)
+        nonstock_space = e_obj['NonStockSpace']
+        form_nsno = e_obj['NonStockNo']
+        form = NonStockTransactionRecordForm(user=request.user, form_ntno=form_ntno, form_eqno=form_eqno, nonstock_space=nonstock_space, form_nsno=form_nsno)
         return form
     elif model == TransactionRecord:
         tr_obj = model.objects
@@ -1000,6 +1002,7 @@ class NonStockCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.For
                         'TicketCreateUser': request.user,
                         'TicketCreateTime': datetime.date.today().strftime('%Y-%m-%d'),
                         'NonStockNo': e_obj['NonStockNo'],
+                        'NonStockSpace': e_obj['NonStockSpace'],
                         'TransactionReqTime': request.POST.getlist('TransactionReqTime')[idx],
                         'TransactionReqUser': request.POST.getlist('TransactionReqUser')[idx],
                         'TransactionFrom': e_obj['Location'],
@@ -1022,12 +1025,12 @@ class NonStockCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.For
                             eq.LastModifyUser = str(request.user)
                             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
                             eq.LastNonStockShipDate = request.POST.getlist('TransactionReqTime')[idx]
-                            eq.NonStockNo = request.POST.getlist('NonStockNo')[idx]
                             eq.Location = request.POST.getlist('TransactionTo')[idx]
                             eq.save()
                             action_statement = 'Create NonStockTransactionRecord with: ' + str(post.dict())
                             make_log(request, action_statement)
                         else:
+                            print(form.errors)
                             form = NonStockTransactionRecordForm()
                             error_msg.append('POST form is invalid; Submission CANCELED')
                             return render(request, self.template_name, {'data_list': data_list, 'error_msg': error_msg, 'form': form})
@@ -1459,6 +1462,7 @@ class EquipmentFormView(PermissionRequiredMixin, generic.FormView):
             if form.is_valid():
                 instance = form.save(commit=False)
                 instance.EquipmentType = ";".join(request.POST.getlist('EquipmentType'))
+                instance.NonStockSpace = int(request.POST.get('Length'))*int(request.POST.get('Width'))
                 for photo in request.FILES.getlist('PhotoLink'):
                     photo_list.append(photo.name)
                     instance.PhotoLink = photo

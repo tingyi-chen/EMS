@@ -48,7 +48,7 @@ class EquipmentList(models.Model):
     TransactionTicketNo = models.CharField(max_length=255, blank=True, default='')
     LastTransactionDate = models.DateField(null=True, blank=True, default=None)
 
-    NonStockNo = models.CharField(max_length=255, blank=True, default='', validators=[RegexValidator(r'^[0-9]+$')])
+    NonStockNo = models.CharField(max_length=255, blank=True, default='', validators=[RegexValidator(r'^[a-zA-Z0-9-]+$')])
     LastNonStockShipDate = models.DateField(blank=True, default=datetime.date.today().strftime('%Y-%m-%d'))
     NonStockSpace = models.FloatField(null=True, blank=True, default=0)
 
@@ -84,7 +84,7 @@ class NonStockTransactionRecord(models.Model):
 
     TicketNo = models.AutoField(primary_key=True)
     NonStockTicketNo = models.CharField(max_length=255, default='')
-    NonStockNo = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[0-9]+$')])
+    NonStockNo = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[a-zA-Z0-9-]+$')])
     EquipmentNo = models.CharField(max_length=255, default='')
     TicketCreateTime = models.DateField(default=datetime.date.today().strftime('%Y-%m-%d'))
     TicketCreateUser = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9]+$')])
@@ -92,7 +92,7 @@ class NonStockTransactionRecord(models.Model):
     TransactionReqUser = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9]+$')])
     TransactionFrom = models.CharField(max_length=255, default='')
     TransactionTo = models.CharField(max_length=255, default='')
-    
+    NonStockSpace = models.FloatField(null=True, blank=True, default=0)
     TruckType = models.CharField(max_length=255, default='')
     # TicketRemark = models.CharField(max_length=255, null=True)
     Description = models.CharField(max_length=255, null=True, blank=True, default='')

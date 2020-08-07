@@ -88,7 +88,7 @@ class AssetLoanRecordForm(forms.ModelForm):
         self.fields['Location'] = forms.ChoiceField(choices=location)
         self.fields['Borrower'] = forms.ChoiceField(choices=borrower)
         self.fields['LoanVendor'] = forms.ChoiceField(choices=vendor)
-
+        
 class NonStockTransactionRecordForm(forms.ModelForm):
     class Meta:
         model = NonStockTransactionRecord
@@ -102,7 +102,9 @@ class NonStockTransactionRecordForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         form_ntno = kwargs.pop('form_ntno', None)
         form_eqno = kwargs.pop('form_eqno', None)
-        kwargs['initial'] = {'NonStockTicketNo': form_ntno, 'EquipmentNo': form_eqno}
+        nonstock_space = kwargs.pop('nonstock_space', None)
+        form_nsno = kwargs.pop('form_nsno', None)
+        kwargs['initial'] = {'NonStockTicketNo': form_ntno, 'EquipmentNo': form_eqno, 'NonStockSpace': nonstock_space, 'NonStockNo': form_nsno}
         super(NonStockTransactionRecordForm, self).__init__(*args, **kwargs)
         trans_from = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         trans_to = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
@@ -114,6 +116,8 @@ class NonStockTransactionRecordForm(forms.ModelForm):
         self.fields['TransactionFrom'] = forms.ChoiceField(choices=trans_from)
         self.fields['TransactionTo'] = forms.ChoiceField(choices=trans_to)
         self.fields['TruckType'] = forms.ChoiceField(choices=truck_type)
+        self.fields['NonStockSpace'].widget.attrs['readonly'] = True
+        self.fields['NonStockNo'].widget.attrs['readonly'] = True
 
 class ToolingCalibrationRecordForm(forms.ModelForm):
     class Meta:
