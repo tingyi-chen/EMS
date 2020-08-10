@@ -247,6 +247,8 @@ def update(request, pk):
                 user=request.user,
                 form_eqno=orig_data['EquipmentNo'],
                 form_ntno=orig_data['NonStockTicketNo'],
+                form_nsno=orig_data['NonStockNo'],
+                nonstock_space=orig_data['NonStockSpace'],
             )
             if form.is_valid():
                 form.save()
@@ -267,7 +269,8 @@ def update(request, pk):
                 form_eqno=orig_data['EquipmentNo'],
                 form_atno=orig_data['AssetLoanTicketNo'],
                 form_asno=orig_data['AssetNo'],
-                photo=orig_data['PhotoLink']
+                photo=orig_data['PhotoLink'],
+                location=orig_data['Location'],
             )
             if form.is_valid():
                 form.save()
@@ -429,7 +432,8 @@ def create_form(request, *args, **kwargs):
         form_eqno = e_obj['EquipmentNo']
         form_asno = e_obj['AssetNo']
         photo = e_obj['PhotoLink']
-        form = AssetLoanRecordForm(user=request.user, form_atno=form_atno, form_eqno=form_eqno, form_asno=form_asno, photo=photo)
+        location = e_obj['Location']
+        form = AssetLoanRecordForm(user=request.user, form_atno=form_atno, form_eqno=form_eqno, form_asno=form_asno, photo=photo, location=location)
         return form
 
 @permission_required((
@@ -778,9 +782,7 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
         for tg in tg_list_concat:
             max_LFQ = EquipmentList.objects.filter(ToolingGroup=tg).aggregate(Max('LimitFreezeQnty'))
             eq_count = tg_list.count(tg)
-            print(tg)
-            print(EquipmentList.objects.filter(ToolingGroup=tg).filter(Status='Active').filter(~Q(Deleted=True)).values(), eq_count, max_LFQ['LimitFreezeQnty__max'])
-            if (EquipmentList.objects.filter(ToolingGroup=tg).values().count() - eq_count) < max_LFQ['LimitFreezeQnty__max']:
+            if (EquipmentList.objects.filter(ToolingGroup=tg).filter(Status='Active').filter(~Q(Deleted=True)).values().count() - eq_count) < max_LFQ['LimitFreezeQnty__max']:
                 error_msg.append('Action Denied Due to LF-Qnty of E-Group: ' + tg + ', Freeze: ' + str(EquipmentList.objects.filter(ToolingGroup=tg).values()[0]['LimitFreezeQnty']) + ', Remaining: ' + str(eq_count))
             else:
                 pass
@@ -1637,9 +1639,7 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
             return redirect('/emsapp/toolingcalibrationrecord')
         elif request.POST.get('c-end-date'):
             tool_item = ToolingCalibrationRecord.objects.get(pk=pk)
-            tool_item.CalibratedEndTime = request.POST.get('c-end-date')
-            if not tool_item.CalibratedStartTime:
-                tool_item.CalibratedStartTime = request.POST.get('c-end-date')
+            tool_item.ActualCalibratedEndTime = request.POST.get('c-end-date')
             eq = EquipmentList.objects.get(EquipmentNo=tool_item.EquipmentNo)
             eq.Status = 'Cali'
             eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
@@ -1656,6 +1656,10 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
         elif request.POST.get('m-start-date'):
             tool_item = ToolingCalibrationRecord.objects.get(pk=pk)
             tool_item.MQStartTime = request.POST.get('m-start-date')
+            if not tool_item.CalibratedStartTime:
+                tool_item.CalibratedStartTime = request.POST.get('m-start-date')
+            if not tool_item.ActualCalibratedEndTime:
+                tool_item.ActualCalibratedEndTime = request.POST.get('m-start-date')
             eq = EquipmentList.objects.get(EquipmentNo=tool_item.EquipmentNo)
             eq.Status = 'MQ'
             eq.LastModifyUser = str(request.user)
@@ -1668,6 +1672,10 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
         elif request.POST.get('m-end-date'):
             tool_item = ToolingCalibrationRecord.objects.get(pk=pk)
             tool_item.MQEndTime = request.POST.get('m-end-date')
+            if not tool_item.CalibratedStartTime:
+                tool_item.CalibratedStartTime = request.POST.get('m-end-date')
+            if not tool_item.ActualCalibratedEndTime:
+                tool_item.ActualCalibratedEndTime = request.POST.get('m-end-date')
             if not tool_item.MQStartTime:
                 tool_item.MQStartTime = request.POST.get('m-end-date')
             eq = EquipmentList.objects.get(EquipmentNo=tool_item.EquipmentNo)

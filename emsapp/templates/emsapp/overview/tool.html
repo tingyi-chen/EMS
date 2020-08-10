@@ -170,10 +170,17 @@
                         </thead>
                         <tbody id="item-lists">
                         {% for tool in data.Tool %}
-                          <tr>
-                            <th scope="row">{{ tool.No }}</th>
-                            <td>{{ tool.Date }}</td>
-                          </tr>
+                        {% if tool.Date < 0 %}
+                        <tr class="orange lighten-4">
+                          <th scope="row">{{ tool.No }}</th>
+                          <td>{{ tool.Date }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                          <th scope="row">{{ tool.No }}</th>
+                          <td>{{ tool.Date }}</td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                         </tbody>
                       </table>

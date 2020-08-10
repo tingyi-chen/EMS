@@ -124,7 +124,8 @@ class ToolingCalibrationRecord(models.Model):
     CalibratedReport = models.FileField(blank=True)
     UnitPrice = models.FloatField(null=True, blank=True, default=0)
     CalibratedCost = models.FloatField(null=True, blank=True, default=0)
-    CalibratedEndTime = models.DateField(default=(datetime.date.today() + relativedelta(days=14)).strftime('%Y-%m-%d'))
+    ExpectedCalibratedEndTime = models.DateField(default=(datetime.date.today() + relativedelta(days=14)).strftime('%Y-%m-%d'))
+    ActualCalibratedEndTime = models.DateField(null=True, blank=True, default=None)
     Comment = models.CharField(max_length=255, null=True, blank=True, default='')
     
     MQStartTime = models.DateField(null=True, blank=True, default=None)

@@ -76,7 +76,8 @@ class AssetLoanRecordForm(forms.ModelForm):
         form_eqno = kwargs.pop('form_eqno', None)
         form_asno = kwargs.pop('form_asno', None)
         photo = kwargs.pop('photo', None)
-        kwargs['initial'] = {'AssetLoanTicketNo': form_atno, 'EquipmentNo': form_eqno, 'AssetNo': form_asno, 'PhotoLink': photo}
+        location = kwargs.pop('location', None)
+        kwargs['initial'] = {'AssetLoanTicketNo': form_atno, 'EquipmentNo': form_eqno, 'AssetNo': form_asno, 'PhotoLink': photo, 'Location': location}
         super(AssetLoanRecordForm, self).__init__(*args, **kwargs)
         location = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         vendor = [(i['LoanVendorName'], i['LoanVendorName']) for i in LoanVendor.objects.values('LoanVendorName').distinct()]
@@ -85,7 +86,7 @@ class AssetLoanRecordForm(forms.ModelForm):
         self.fields['AssetLoanTicketNo'].widget.attrs['readonly'] = True
         self.fields['AssetNo'].widget.attrs['readonly'] = True
         self.fields['PhotoLink'].widget = forms.TextInput(attrs={'readonly': True, 'required': False})
-        self.fields['Location'] = forms.ChoiceField(choices=location)
+        self.fields['Location'].widget.attrs['readonly'] = True
         self.fields['Borrower'] = forms.ChoiceField(choices=borrower)
         self.fields['LoanVendor'] = forms.ChoiceField(choices=vendor)
         

@@ -164,11 +164,12 @@
                                         <th scope="col th-sm">#</th>
                                         <th scope="col th-sm">T. No</th>
                                         <th scope="col th-sm">EnName</th>
-                                        <th scope="col th-sm">Cali. Vendor</th>
-                                        <th scope="col th-sm">C. Start</th>
-                                        <th scope="col th-sm">C. End</th>
-                                        <th scope="col th-sm">MQ Start</th>
-                                        <th scope="col th-sm">MQ End</th>
+                                        <th scope="col th-sm">CaliVendor</th>
+                                        <th scope="col th-sm">CaliStart</th>
+                                        <th scope="col th-sm">Expec.CEnd</th>
+                                        <th scope="col th-sm">Actual.CEnd</th>
+                                        <th scope="col th-sm">MQStart</th>
+                                        <th scope="col th-sm">MQEnd</th>
                                         <th scope="col th-sm">Location</th>
                                         <th scope="col th-sm">Det.</th>
                                         {% if perms.emsapp.delete_toolingcalibrationrecord and perms.emsapp.change_toolingcalibrationrecord and perms.emsapp.add_toolingcalibrationrecord %}
@@ -186,8 +187,9 @@
                                     <td class="align-middle">{{ tool.EnName }}</td>
                                     <td class="align-middle">{{ tool.CaliVendor }}</td>
                                     <td class="align-middle">{{ tool.CalibratedStartTime }}</td>
-                                    {% if tool.CalibratedEndTime %}
-                                    <td class="align-middle">{{ tool.CalibratedEndTime }}</td>
+                                    <td class="align-middle">{{ tool.ExpectedCalibratedEndTime }}</td>
+                                    {% if tool.ActualCalibratedEndTime %}
+                                    <td class="align-middle">{{ tool.ActualCalibratedEndTime }}</td>
                                     {% elif perms.emsapp.change_toolingcalibrationrecord %}
                                     <td class="align-middle">
                                         <form action="/emsapp/toolingcalibrationrecord/{{ tool.TicketNo }}/form/" class="mb-0" method="post" enctype="multipart/form-data">
