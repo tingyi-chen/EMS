@@ -15,7 +15,7 @@
             {% csrf_token %} 
 
                 <div class="modal-header brown">
-                    <h5 class="modal-title text-white" id="create-label">Transaction</h5>
+                    <h5 class="modal-title text-white" id="create-label">NonStock Trans</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -24,22 +24,25 @@
                     <div class="form-row">
                         <div class="form-group col-md-4 mb-0">
                             {{ form.NonStockTicketNo|tabindex:1|as_crispy_field }}
-                            {{ form.NonStockSpace|tabindex:4|as_crispy_field}}
-                            {{ form.TransactionReqUser|tabindex:7|as_crispy_field }}
-                            {{ form.TicketCreateUser|tabindex:10|as_crispy_field }}
+                            {{ form.Name|tabindex:4|as_crispy_field}}
+                            {{ form.TransactionFrom|tabindex:7|as_crispy_field }}
+                            {{ form.TransactionReqUser|tabindex:10|as_crispy_field }}
+                            {{ form.TicketCreateUser|tabindex:13|as_crispy_field }}
+                            {{ form.OtherDemand|tabindex:16|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-4 mb-0">
                             {{ form.EquipmentNo|tabindex:2|as_crispy_field }}
-                            {{ form.TransactionFrom|tabindex:5|as_crispy_field }}
-                            {{ form.TransactionReqTime|tabindex:8|as_crispy_field }}
-                            {{ form.TruckType|tabindex:11|as_crispy_field }}
+                            {{ form.EnName|tabindex:5|as_crispy_field}}
+                            {{ form.TransactionTo|tabindex:8|as_crispy_field }}
+                            {{ form.TransactionReqTime|tabindex:11|as_crispy_field }}
+                            {{ form.TicketCreateTime|tabindex:14|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-4 mb-0">
                             {{ form.NonStockNo|tabindex:3|as_crispy_field }}
-                            {{ form.TransactionTo|tabindex:6|as_crispy_field }}
-                            {{ form.TicketCreateTime|tabindex:9|as_crispy_field }}
-                            {{ form.Description|tabindex:12|as_crispy_field }}
-                            {{ form.OtherDemand|tabindex:15|as_crispy_field }}
+                            {{ form.NonStockSpace|tabindex:6|as_crispy_field}}
+                            {{ form.PhotoLink|tabindex:9|as_crispy_field }}
+                            {{ form.TruckType|tabindex:12|as_crispy_field }}
+                            {{ form.Description|tabindex:15|as_crispy_field }}
                         </div>
                     </div>
                     <div class="form-row">

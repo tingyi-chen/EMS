@@ -27,12 +27,12 @@ class EquipmentForm(forms.ModelForm):
         }
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        form_eqno = kwargs.pop('form_eqno', None)
+        eqno = kwargs.pop('eqno', None)
         date = kwargs.pop('date', None)
         update = kwargs.pop('update', None)
         if update:
-            kwargs['initial'] = {'EquipmentNo': form_eqno, 'CreateUser': user, 'CreateDate': date}
-        kwargs['initial'] = {'EquipmentNo': form_eqno}
+            kwargs['initial'] = {'EquipmentNo': eqno, 'CreateUser': user, 'CreateDate': date}
+        kwargs['initial'] = {'EquipmentNo': eqno}
         super(EquipmentForm, self).__init__(*args, **kwargs)
         location = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         prod_vendor = [(i['ProdVendorName'], i['ProdVendorName']) for i in ProdVendor.objects.values('ProdVendorName').distinct()]
@@ -60,6 +60,7 @@ class EquipmentForm(forms.ModelForm):
         self.fields['Location'] = forms.ChoiceField(choices=location)
         self.fields['ProdVendor'] = forms.ChoiceField(choices=prod_vendor)
         self.fields['ProdVendor'].label = "ProdVendor"
+        self.fields['LastModifyDate'].initial = datetime.date.today().strftime('%Y-%m-%d')
 
 class AssetLoanRecordForm(forms.ModelForm):
     class Meta:
@@ -72,12 +73,14 @@ class AssetLoanRecordForm(forms.ModelForm):
         }
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        form_atno = kwargs.pop('form_atno', None)
-        form_eqno = kwargs.pop('form_eqno', None)
-        form_asno = kwargs.pop('form_asno', None)
+        atno = kwargs.pop('atno', None)
+        eqno = kwargs.pop('eqno', None)
+        asno = kwargs.pop('asno', None)
         photo = kwargs.pop('photo', None)
         location = kwargs.pop('location', None)
-        kwargs['initial'] = {'AssetLoanTicketNo': form_atno, 'EquipmentNo': form_eqno, 'AssetNo': form_asno, 'PhotoLink': photo, 'Location': location}
+        name = kwargs.pop('name', None)
+        en_name = kwargs.pop('en_name', None)
+        kwargs['initial'] = {'AssetLoanTicketNo': atno, 'EquipmentNo': eqno, 'AssetNo': asno, 'PhotoLink': photo, 'Location': location, 'Name': name, 'EnName': en_name}
         super(AssetLoanRecordForm, self).__init__(*args, **kwargs)
         location = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         vendor = [(i['LoanVendorName'], i['LoanVendorName']) for i in LoanVendor.objects.values('LoanVendorName').distinct()]
@@ -85,10 +88,14 @@ class AssetLoanRecordForm(forms.ModelForm):
         self.fields['EquipmentNo'].widget.attrs['readonly'] = True
         self.fields['AssetLoanTicketNo'].widget.attrs['readonly'] = True
         self.fields['AssetNo'].widget.attrs['readonly'] = True
+        self.fields['Name'].widget.attrs['readonly'] = True
+        self.fields['EnName'].widget.attrs['readonly'] = True
         self.fields['PhotoLink'].widget = forms.TextInput(attrs={'readonly': True, 'required': False})
         self.fields['Location'].widget.attrs['readonly'] = True
         self.fields['Borrower'] = forms.ChoiceField(choices=borrower)
         self.fields['LoanVendor'] = forms.ChoiceField(choices=vendor)
+        self.fields['LoanStartTime'].initial = datetime.date.today().strftime('%Y-%m-%d')
+        self.fields['LoanEndTime'].initial = (datetime.date.today() + relativedelta(months=6)).strftime('%Y-%m-%d')
         
 class NonStockTransactionRecordForm(forms.ModelForm):
     class Meta:
@@ -101,17 +108,23 @@ class NonStockTransactionRecordForm(forms.ModelForm):
         }
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        form_ntno = kwargs.pop('form_ntno', None)
-        form_eqno = kwargs.pop('form_eqno', None)
+        ntno = kwargs.pop('ntno', None)
+        eqno = kwargs.pop('eqno', None)
         nonstock_space = kwargs.pop('nonstock_space', None)
-        form_nsno = kwargs.pop('form_nsno', None)
-        kwargs['initial'] = {'NonStockTicketNo': form_ntno, 'EquipmentNo': form_eqno, 'NonStockSpace': nonstock_space, 'NonStockNo': form_nsno}
+        nsno = kwargs.pop('nsno', None)
+        photo = kwargs.pop('photo', None)
+        name = kwargs.pop('name', None)
+        en_name = kwargs.pop('en_name', None)
+        kwargs['initial'] = {'NonStockTicketNo': ntno, 'EquipmentNo': eqno, 'NonStockSpace': nonstock_space, 'NonStockNo': nsno, 'PhotoLink': photo, 'Name': name, 'EnName': en_name}
         super(NonStockTransactionRecordForm, self).__init__(*args, **kwargs)
         trans_from = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         trans_to = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         truck_type = [(i['Truck'], i['Truck']) for i in Truck.objects.values('Truck').distinct()]
         self.fields['EquipmentNo'].widget.attrs['readonly'] = True
         self.fields['NonStockTicketNo'].widget.attrs['readonly'] = True
+        self.fields['PhotoLink'].widget.attrs['readonly'] = True
+        self.fields['Name'].widget.attrs['readonly'] = True
+        self.fields['EnName'].widget.attrs['readonly'] = True
         self.fields['TicketCreateUser'].initial = user
         self.fields['TransactionReqUser'].initial = user
         self.fields['TransactionFrom'] = forms.ChoiceField(choices=trans_from)
@@ -119,6 +132,11 @@ class NonStockTransactionRecordForm(forms.ModelForm):
         self.fields['TruckType'] = forms.ChoiceField(choices=truck_type)
         self.fields['NonStockSpace'].widget.attrs['readonly'] = True
         self.fields['NonStockNo'].widget.attrs['readonly'] = True
+        self.fields['TransactionFrom'].label = "TransactionFrom"
+        self.fields['TransactionTo'].label = "TransactionTo"
+        self.fields['TruckType'].label = "TruckType"
+        self.fields['TransactionReqTime'].initial = datetime.date.today().strftime('%Y-%m-%d')
+        self.fields['TicketCreateTime'].initial = datetime.date.today().strftime('%Y-%m-%d')
 
 class ToolingCalibrationRecordForm(forms.ModelForm):
     class Meta:
@@ -134,19 +152,19 @@ class ToolingCalibrationRecordForm(forms.ModelForm):
         }
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        form_tcno = kwargs.pop('form_tcno', None)
-        form_eqno = kwargs.pop('form_eqno', None)
-        form_tlno = kwargs.pop('form_tlno', None)
-        form_name = kwargs.pop('form_name', None)
-        form_en_name = kwargs.pop('form_en_name', None)
-        form_mdno = kwargs.pop('form_mdno', None)
-        form_site = kwargs.pop('form_site', None)
+        tcno = kwargs.pop('tcno', None)
+        eqno = kwargs.pop('eqno', None)
+        tlno = kwargs.pop('tlno', None)
+        name = kwargs.pop('name', None)
+        en_name = kwargs.pop('en_name', None)
+        mdno = kwargs.pop('mdno', None)
+        site = kwargs.pop('site', None)
         photo = kwargs.pop('photo', None)
         pr_vendor = kwargs.pop('pr_vendor', None)
         location = kwargs.pop('location', None)
         last_due_date = kwargs.pop('last_due_date', None)
         next_due_date = kwargs.pop('next_due_date', None)
-        kwargs['initial'] = {'CalibratedTicketNo': form_tcno, 'EquipmentNo': form_eqno, 'ToolingNo': form_tlno, 'Name': form_name, 'EnName': form_en_name, 'ModuleNo': form_mdno, 'PhotoLink': photo, 'form_site': form_site, 'ProdVendor': pr_vendor, 'Location': location, 'LastDueDate': last_due_date, 'NextDueDate': next_due_date}
+        kwargs['initial'] = {'CalibratedTicketNo': tcno, 'EquipmentNo': eqno, 'ToolingNo': tlno, 'Name': name, 'EnName': en_name, 'ModuleNo': mdno, 'PhotoLink': photo, 'site': site, 'ProdVendor': pr_vendor, 'Location': location, 'LastDueDate': last_due_date, 'NextDueDate': next_due_date}
         super(ToolingCalibrationRecordForm, self).__init__(*args, **kwargs)
         prod_vendor = [(i['ProdVendorName'], i['ProdVendorName']) for i in ProdVendor.objects.values('ProdVendorName').distinct()]
         cali_vendor = [(i['CaliVendorName'], i['CaliVendorName']) for i in CaliVendor.objects.values('CaliVendorName').distinct()]
@@ -162,6 +180,9 @@ class ToolingCalibrationRecordForm(forms.ModelForm):
         self.fields['Location'].widget.attrs['readonly'] = True
         self.fields['ProdVendor'].widget.attrs['readonly'] = True
         self.fields['ModuleNo'].widget.attrs['readonly'] = True
+        self.fields['CalibratedTicketCreateDate'].initial = datetime.date.today().strftime('%Y-%m-%d')
+        self.fields['CalibratedStartTime'].initial = datetime.date.today().strftime('%Y-%m-%d')
+        self.fields['ExpectedCalibratedEndTime'].initial = (datetime.date.today() + relativedelta(days=14)).strftime('%Y-%m-%d')
 
 class TransactionRecordForm(forms.ModelForm):
     class Meta:
@@ -169,20 +190,29 @@ class TransactionRecordForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['Deleted']
         widgets = {
-            'TicketCreateDate': DatePickerInput(format='%Y-%m-%d'),
+            'TicketCreateTime': DatePickerInput(format='%Y-%m-%d'),
             'TransactionReqTime': DatePickerInput(format='%Y-%m-%d'),
         }
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        form_ttno = kwargs.pop('form_ttno', None)
-        kwargs['initial'] = {'TransactionTicketNo': form_ttno}
+        eqno = kwargs.pop('eqno', None)
+        ttno = kwargs.pop('ttno', None)
+        photo = kwargs.pop('photo', None)
+        description = kwargs.pop('description', None)
+        kwargs['initial'] = {'TransactionTicketNo': ttno, 'Description': eqno, 'PhotoLink': photo, 'Description': description}
         super(TransactionRecordForm, self).__init__(*args, **kwargs)
         trans_from = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         trans_to = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         truck_type = [(i['Truck'], i['Truck']) for i in Truck.objects.values('Truck').distinct()]
         self.fields['TransactionTicketNo'].widget.attrs['readonly'] = True
+        self.fields['PhotoLink'].widget.attrs['readonly'] = True
         self.fields['TicketCreateUser'].initial = user
         self.fields['TransactionReqUser'].initial = user
         self.fields['TransactionFrom'] = forms.ChoiceField(choices=trans_from)
         self.fields['TransactionTo'] = forms.ChoiceField(choices=trans_to)
         self.fields['TruckType'] = forms.ChoiceField(choices=truck_type)
+        self.fields['TransactionFrom'].label = "TransactionFrom"
+        self.fields['TransactionTo'].label = "TransactionTo"
+        self.fields['TruckType'].label = "TruckType"
+        self.fields['TransactionReqTime'].initial = datetime.date.today().strftime('%Y-%m-%d')
+        self.fields['TicketCreateTime'].initial = datetime.date.today().strftime('%Y-%m-%d')

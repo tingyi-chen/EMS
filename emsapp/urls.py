@@ -21,7 +21,6 @@ urlpatterns = [
 
     url(r'^accounts/login/$', views.LoginView.as_view(), name='login'),
     url(r'^accounts/logout/$', views.LogoutView.as_view(), name='logout'),
-    url(r'^profile/$', views.ProfileView.as_view(), name='profile'),
 
     url(r'^home/info/$', views.HomeView.info, name='homeInfo'),
     url(r'^home/asset/$', views.HomeView.asset, name='homeAsset'),
@@ -48,11 +47,10 @@ urlpatterns = [
     url(r'^equipmentlist/search/$', views.EquipmentFormView.search, name='equipmentSearch'),
     url(r'^equipmentlist/export/$', views.xlsx_export, name='equipmentExport'),
     url(r'^equipmentlist/import/$', views.xlsx_import, name='equipmentImport'),
-    url(r'^equipmentlist/import/form/$', views.EquipmentListImportView.as_view(), name='equipmentImportForm'),
     url(r'^equipmentlist/tool/check/$', views.ToolCheckView.as_view(), name='equipmentToolCheck'),
     url(r'^equipmentlist/asset/check/$', views.AssetCheckView.as_view(), name='equipmentAssetCheck'),
     url(r'^equipmentlist/nonstock/check/$', views.NonStockCheckView.as_view(), name='equipmentNonStockCheck'),
-    url(r'^equipmentlist/trans/check/(?P<count>[0-9]|)/$', views.TransCheckView.as_view(), name='equipmentTransCheck'),
+    url(r'^equipmentlist/trans/check/(?P<count>[0-9]+)/$', views.TransCheckView.as_view(), name='equipmentTransCheck'),
 
     url(r'^assetloanrecord/(?P<pk>[0-9]+)/form/$', views.AssetLoanRecordFormView.as_view(), name='assetLoanForm'),
     url(r'^assetloanrecord/$', views.AssetLoanRecordView.as_view(), name='assetLoanList'),

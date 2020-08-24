@@ -5,7 +5,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -171,10 +171,17 @@
                       </thead>
                       <tbody id="item-lists">
                       {% for asset in data.Asset %}
-                        <tr>
-                          <th scope="row">{{ asset.No }}</th>
-                          <td>{{ asset.Date }}</td>
-                        </tr>
+                      {% if asset.Date < 0 %}
+                      <tr class="deep-orange lighten-4">
+                        <th scope="row">{{ asset.No }}</th>
+                        <td>{{ asset.Date }}</td>
+                      </tr>
+                      {% else %}
+                      <tr>
+                        <th scope="row">{{ asset.No }}</th>
+                        <td>{{ asset.Date }}</td>
+                      </tr>
+                      {% endif %}
                       {% endfor %}
                       </tbody>
                     </table>
@@ -208,7 +215,7 @@
   $(document).ready(function () {
     $('#overview-a-table').DataTable({
         'pagingType': 'simple_numbers',
-        "pageLength": 2
+        "pageLength": 5
     });
   });
   var config = {
@@ -217,7 +224,7 @@
       datasets: [{
         data: {{ data.a_location }},
         backgroundColor: [
-          '#ff5722', '#ff7043', '#ff8a65', '#ffab91', '#ffccbc'
+          '#e64a19', '#f4511e', '#ff5722', '#ff7043', '#ff8a65', '#ffab91', '#ffccbc'
         ],
         label: 'Asset Location'
       }],

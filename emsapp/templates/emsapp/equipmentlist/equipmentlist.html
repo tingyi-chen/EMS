@@ -2,7 +2,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -133,11 +133,11 @@
                     <div class="card">
                         <div class="card-body card-body-cascade">
                             <div class="row">
-                                <div class="col-md-7 my-auto">
+                                <div class="col-md-5 my-auto">
                                     <h5 class="ml-auto my-auto font-weight-bold">Summary Table</h5>
                                 </div>
                                 {% if perms.emsapp.add_equipmentlist %}
-                                <div class="col-md-5 d-flex justify-content-end">
+                                <div class="col-md-7 d-flex justify-content-end">
                                     <div class="btn-group" role="group" aria-label="First group">
                                         <button id="e-create-button" type="button" class="btn btn-danger py-2 px-3" data-toggle="modal" data-target="#e-create-modal">
                                             <i class="fas fa-plus pr-2"></i>Create
@@ -160,17 +160,29 @@
                                 </div>
                                 {% endif %}
                             </div>
+                            <div class="row">
+                                <div class="col-md-12 my-auto">
+                                    {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="text-center font-weight-bold text-danger">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                         <div class="px-3 table-responsive">
                             <table id="e-table" class="table table-hover" width="100%">
                                 <thead class="blue-grey darken-2 text-white">
                                     <tr>
                                         <th scope="col th-sm">#</th>
-                                        <th scope="col th-sm">A.</th>
-                                        <th scope="col th-sm">T.</th>
-                                        <th scope="col th-sm">N.S.</th>
+                                        <th scope="col th-sm">A.No</th>
+                                        <th scope="col th-sm">T.No</th>
+                                        <th scope="col th-sm">N.S.No</th>
                                         <th scope="col th-sm">Owner</th>
-                                        <th scope="col th-sm">EnName</th>
+                                        <th scope="col th-sm">En.Name</th>
+                                        <th scope="col th-sm">ToolingG.</th>
                                         <th scope="col th-sm">Locat.</th>
                                         <th scope="col th-sm">Site</th>
                                         <th scope="col th-sm">Status</th>
@@ -195,6 +207,7 @@
                                     <td class="align-middle">{{ equipment.NonStockNo }}</td>
                                     <td class="align-middle">{{ equipment.EquipmentOwnerName }}</td>
                                     <td class="align-middle">{{ equipment.EnName }}</td>
+                                    <td class="align-middle">{{ equipment.ToolingGroup }}</td>
                                     <td class="align-middle">{{ equipment.Location }}</td>
                                     <td class="align-middle">{{ equipment.Site }}</td>
                                     <td class="align-middle">{{ equipment.Status }}</td>
@@ -225,7 +238,7 @@
                                             <i class="fas fa-tools"></i>
                                         </a>
                                         {% endif %}
-                                        {% if perms.emsapp.add_nonstocktransactionrecord and equipment.Status == 'Active' %}
+                                        {% if 'NonS' in equipment.EquipmentType and perms.emsapp.add_nonstocktransactionrecord and equipment.Status == 'Active' %}
                                         <a href="{% url 'emsapp:nonStockForm' equipment.CountIndex %}">
                                             <i class="fas fa-truck"></i>
                                         </a>
@@ -247,7 +260,8 @@
                                     <td class="align-middle">{{ q.ToolingNo }}</td>
                                     <td class="align-middle">{{ q.NonStockNo }}</td>
                                     <td class="align-middle">{{ q.EquipmentOwnerName }}</td>
-                                    <td class="align-middle">{{ q.Name }}</td>
+                                    <td class="align-middle">{{ q.EnName }}</td>
+                                    <td class="align-middle">{{ q.ToolingGroup }}</td>
                                     <td class="align-middle">{{ q.Location }}</td>
                                     <td class="align-middle">{{ q.Site }}</td>
                                     <td class="align-middle">{{ q.Status }}</td>

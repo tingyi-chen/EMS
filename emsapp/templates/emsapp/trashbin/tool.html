@@ -5,7 +5,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -164,13 +164,13 @@
                                 <thead class="light-green darken-3 text-white">
                                     <tr>
                                         <th scope="col th-sm">#</th>
-                                        <th scope="col th-sm">T. No</th>
+                                        <th scope="col th-sm">ToolingNo</th>
                                         <th scope="col th-sm">Name</th>
-                                        <th scope="col th-sm">En. Name</th>
-                                        <th scope="col th-sm">C. Start</th>
-                                        <th scope="col th-sm">C. End</th>
-                                        <th scope="col th-sm">MQ Start</th>
-                                        <th scope="col th-sm">MQ End</th>
+                                        <th scope="col th-sm">EnName</th>
+                                        <th scope="col th-sm">CStart</th>
+                                        <th scope="col th-sm">CEnd</th>
+                                        <th scope="col th-sm">MQStart</th>
+                                        <th scope="col th-sm">MQEnd</th>
                                         <th scope="col th-sm">AlertTime</th>
                                         <th scope="col th-sm">Det.</th>
                                         <th scope="col th-sm">Rec.</th>
@@ -220,7 +220,7 @@
                                         </a>
                                     </td>
                                     <td class="align-middle">
-                                        <a href="{% url 'emsapp:toolingCalibrationRecovery' q.TicketNo %}" onclick="return alert('Recovery Success!')">
+                                        <a href="{% url 'emsapp:toolingCalibrationRecovery' q.TicketNo %}" onclick="return confirm('Are you sure to recover this row?')">
                                             <i class="fas fa-redo-alt"></i>
                                         </a>
                                     </td>

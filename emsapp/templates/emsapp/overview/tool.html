@@ -5,7 +5,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -214,7 +214,7 @@
   $(document).ready(function () {
     $('#overview-t-table').DataTable({
         'pagingType': 'simple_numbers',
-        "pageLength": 2
+        "pageLength": 5
     });
   });
   var toolConfig = {
@@ -223,7 +223,7 @@
       datasets: [{
         data: {{ data.t_location }},
         backgroundColor: [
-          '#ff9800', '#ffa726', '#ffb74d', '#ffcc80', '#ffe0b2'
+          '#f57c00', '#fb8c00', '#ff9800', '#ffa726', '#ffb74d', '#ffcc80', '#ffe0b2'
         ],
         label: 'Tool Location'
       }],

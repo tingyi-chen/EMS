@@ -22,7 +22,7 @@ label {
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -153,19 +153,22 @@ label {
                                         <tr>
                                             <th scope="col th-sm">AssetNo</th>
                                             <th scope="col th-sm">Location</th>
+                                            <th scope="col th-sm">Name</th>
+                                            <th scope="col th-sm">EnName</th>
                                             <th scope="col th-sm">LoanStartTime</th>
                                             <th scope="col th-sm">LoanEndTime</th>
                                             <th scope="col th-sm">LoanVendor</th>
                                             <th scope="col th-sm">Borrower</th>
-                                            <th scope="col th-sm">L. Reason</th>
+                                            <th scope="col th-sm">L.Reason</th>
                                             <th scope="col th-sm">Check</th>
                                         </tr>
                                     </thead>
                                     <colgroup>
                                         <col style="width: 10%;">
                                         <col style="width: 10%;">
-                                        <col style="width: 15%;">
-                                        <col style="width: 15%;">
+                                        <col style="width: 10%;">
+                                        <col style="width: 10%;">
+                                        <col style="width: 10%;">
                                         <col style="width: 15%;">
                                         <col style="width: 15%;">
                                         <col style="width: 15%;">
@@ -174,9 +177,12 @@ label {
                                     <tbody id="item-lists">
                                     {% if data_list %}
                                     {% for data in data_list %}
+                                    {% if data.detail.AssetNo %}
                                     <tr>
                                         <td class="align-middle">{{ data.detail.AssetNo }}</td>
                                         <td class="align-middle">{{ data.detail.Location }}</td>
+                                        <td class="align-middle">{{ data.detail.Name }}</td>
+                                        <td class="align-middle">{{ data.detail.EnName }}</td>
                                         <td class="align-middle">{{ form.LoanStartTime|as_crispy_field }}</td>
                                         <td class="align-middle">{{ form.LoanEndTime|as_crispy_field }}</td>
                                         <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.LoanVendor|as_crispy_field }}</td>
@@ -184,6 +190,7 @@ label {
                                         <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.LoanReason|as_crispy_field }}</td>
                                         <td class="align-middle"><input id="{{ data.detail.EquipmentNo }}" type="checkbox" name="EquipmentNo" value="{{ data.detail.EquipmentNo }}"></td>
                                     </tr>
+                                    {% endif %}
                                     {% endfor %}
                                     {% endif %}
                                     </tbody>

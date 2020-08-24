@@ -7,7 +7,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -84,16 +84,11 @@
             </ul>
         </div>
     </nav>
-            {% comment %} <div class="btn-group mr-2 px-3" role="group" aria-label="First group">
-                <button onclick="location.href='/emsapp/toolingcalibrationrecord/form'" id="t-calibrate-button" type="button" class="btn btn-amber">
-                    <i class="fas fa-plus pr-2"></i>Calibrate
-                </button>
-            </div> {% endcomment %}
     <div id="content" class="teal lighten-5">
         <nav class="navbar navbar-expand-lg navbar-dark mdb-color darken-3 mb-0">
             <div class="container">
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav nav-flex-icons">
+                    <ul class="navbar-nav nav-flex-icons ml-auto">
                         <li class="nav-item white-text my-auto">
                             <span>Hello, {{ user }}</span>
                         </li>
@@ -121,16 +116,16 @@
                 </div>
                 <div class="col-md-5 my-auto d-flex justify-content-end">
                     {% if perms.emsapp.delete_equipmentlist and perms.emsapp.change_equipmentlist %}
-                        <button class="btn btn-dark">
-                            <a href="{% url 'emsapp:equipmentUpdate' equipmentlist.CountIndex %}">
-                                <i class="fas fa-pen-square"></i>
-                            </a>
-                        </button>
-                        <button class="btn btn-dark">
-                            <a href="{% url 'emsapp:equipmentDelete' equipmentlist.CountIndex %}" onclick="return confirm('Are you sure to delete this row?')"> 
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </button>
+                    <a href="{% url 'emsapp:equipmentUpdate' equipmentlist.CountIndex %}">
+                      <button class="btn btn-dark">
+                        <i class="fas fa-pen-square"></i>
+                      </button>
+                    </a>
+                    <button class="btn btn-dark">
+                      <a href="{% url 'emsapp:equipmentDelete' equipmentlist.CountIndex %}" onclick="return confirm('Are you sure to delete this row?')"> 
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    </button>
                     {% endif %}
                 </div>
                 <div class="col-md-12">
@@ -190,79 +185,79 @@
                         <h5 class="ml-auto mb-3 font-weight-bold">Full Detail</h5>
                             <div class="row">
                                 <div class="col-md-4 text-md-left">
-                                    <span>Equipment No</span>
+                                    <span class="border-bottom">Equipment No</span>
                                     <p class="font-weight-bold">{{ equipmentlist.EquipmentNo }}</p>
-                                    <span>Serial Number</span>
+                                    <span class="border-bottom">Serial Number</span>
                                     <p class="font-weight-bold">{{ equipmentlist.SerialNumber }}</p>
-                                    <span>Asset No</span>
+                                    <span class="border-bottom">Asset No</span>
                                     <p class="font-weight-bold">{{ equipmentlist.AssetNo }}</p>
-                                    <span>Tooling No</span>
+                                    <span class="border-bottom">Tooling No</span>
                                     <p class="font-weight-bold">{{ equipmentlist.ToolingNo }}</p>
-                                    <span>NonStock No</span>
+                                    <span class="border-bottom">NonStock No</span>
                                     <p class="font-weight-bold">{{ equipmentlist.NonStockNo }}</p>
-                                    <span>Trans TicketNo</span>
+                                    <span class="border-bottom">Trans TicketNo</span>
                                     <p class="font-weight-bold">{{ equipmentlist.TransactionTicketNo }}</p>
-                                    <span>Module No</span>
+                                    <span class="border-bottom">Module No</span>
                                     <p class="font-weight-bold">{{ equipmentlist.ModuleNo }}</p>
-                                    <span>Equipment Owner ID</sapn>
+                                    <span class="border-bottom">Equipment Owner ID</sapn>
                                     <p class="font-weight-bold">{{ equipmentlist.EquipmentOwnerID }}</p>
-                                    <span>Equipment Owner Name</span>
+                                    <span class="border-bottom">Equipment Owner Name</span>
                                     <p class="font-weight-bold">{{ equipmentlist.EquipmentOwnerName }}</p>
-                                    <span>Last Modify User</span>
+                                    <span class="border-bottom">Last Modify User</span>
                                     <p class="font-weight-bold">{{ equipmentlist.LastModifyUser }}</p>
-                                    <span>Last Modify Date</span>
+                                    <span class="border-bottom">Last Modify Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.LastModifyDate }}</p>
-                                    <span>Create User</span>
+                                    <span class="border-bottom">Create User</span>
                                     <p class="font-weight-bold">{{ equipmentlist.CreateUser }}</p>
                                 </div>
                                 <div class="col-md-4 text-md-left ml-3 mt-3">
-                                  <span>Equipment Type</span>
+                                    <span class="border-bottom">Equipment Type</span>
                                     <p class="font-weight-bold">{{ equipmentlist.EquipmentType }}</p>
-                                    <span>Team Group</span>
+                                    <span class="border-bottom">Team Group</span>
                                     <p class="font-weight-bold">{{ equipmentlist.TeamGroup }}</p>
-                                    <span>Equipment Group</span>
+                                    <span class="border-bottom">Equipment Group</span>
                                     <p class="font-weight-bold">{{ equipmentlist.EquipmentGroup }}</p>
-                                    <span>Tooling Group</span>
+                                    <span class="border-bottom">Tooling Group</span>
                                     <p class="font-weight-bold">{{ equipmentlist.ToolingGroup }}</p>
-                                    <span>Production Vendor</span>
+                                    <span class="border-bottom">Production Vendor</span>
                                     <p class="font-weight-bold">{{ equipmentlist.ProdVendor }}</p>
-                                    <span>Length</span>
+                                    <span class="border-bottom">Length</span>
                                     <p class="font-weight-bold">{{ equipmentlist.Length }}</p>
-                                    <span>Height</span>
+                                    <span class="border-bottom">Height</span>
                                     <p class="font-weight-bold">{{ equipmentlist.Height }}</p>
-                                    <span>Width</span>
+                                    <span class="border-bottom">Width</span>
                                     <p class="font-weight-bold">{{ equipmentlist.Width }}</p>
-                                    <span>Weight</span>
+                                    <span class="border-bottom">Weight</span>
                                     <p class="font-weight-bold">{{ equipmentlist.Weight }}</p>
-                                    <span>Cost</span>
+                                    <span class="border-bottom">Cost</span>
                                     <p class="font-weight-bold">{{ equipmentlist.Cost }}</p>
-                                    <span>Photo Link</span>
+                                    <span class="border-bottom">Photo Link</span>
                                     <p class="font-weight-bold">{{ equipmentlist.PhotoLink }}</p>
-                                    <span>Create Date</span>
+                                    <span class="border-bottom">Create Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.CreateDate }}</p>
                                 </div>
                                 <div class="col-md-3 text-md-left ml-3 mt-3">
-                                    <span>Limit Freeze Quantity</sapn>
+                                    <span class="border-bottom">Limit Freeze Quantity</sapn>
                                     <p class="font-weight-bold">{{ equipmentlist.LimitFreezeQnty }}</p>
-                                    <span>中文描述</sapn>
+                                    <span class="border-bottom">中文描述</sapn>
                                     <p class="font-weight-bold">{{ equipmentlist.ChDescription }}</p>
-                                    <span>English Description</span>
+                                    <span class="border-bottom">English Description</span>
                                     <p class="font-weight-bold">{{ equipmentlist.EnDescription }}</p>
-                                    <span>Asset Loaned Return Date</span>
+                                    <span class="border-bottom">Asset Loaned Return Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.AssetLoanedReturnDate }}</p>
-                                    <span>Last Calibrated Date</span>
+                                    <span class="border-bottom">Last Calibrated Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.LastCalibratedDate }}</p>
-                                    <span>Next Calibrated Date</span>
+                                    <span class="border-bottom">Next Calibrated Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.NextCalibratedDate }}</p>
-                                    <span>Planned Calibration Date</span>
+                                    <span class="border-bottom">Planned Calibration Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.PlanCalDate }}</p>
-                                    <span>Last NonStock Ship Date</span>
+                                    <span class="border-bottom">Last NonStock Ship Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.LastNonStockShipDate }}</p>
-                                    <span>Last Transaction Date</span>
+                                    <span class="border-bottom">Last Transaction Date</span>
                                     <p class="font-weight-bold">{{ equipmentlist.LastTransactionDate }}</p>
-                                    <span>Specification</span>
+                                    <span class="border-bottom">Specification</span>
                                     <p class="font-weight-bold">{{ equipmentlist.Specification }}</p>
-                                    <span>Limitations</span>
+                                    <span class="border-bottom">Limitations</span>
                                     <p class="font-weight-bold">{{ equipmentlist.Limitations }}</p>
                                     
                                 </div>

@@ -7,7 +7,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -146,6 +146,17 @@
                                   </div>
                                 {% endif %}
                             </div>
+                            <div class="row">
+                                <div class="col-md-12 my-auto">
+                                    {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="text-center font-weight-bold text-danger">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="px-3 table-responsive">
@@ -167,7 +178,8 @@
                                     <th scope="col th-sm">TransFrom</th>
                                     <th scope="col th-sm">TransTo</th>
                                     <th scope="col th-sm">TruckType</th>
-                                    <th scope="col th-sm">TransReqUser</th>
+                                    <th scope="col th-sm">ReqUser</th>
+                                    <th scope="col th-sm">ReqTime</th>
                                     <th scope="col th-sm">Det.</th>
                                     {% if perms.emsapp.delete_nonstocktransactionrecord and perms.emsapp.change_nonstocktransactionrecord and perms.emsapp.add_nonstocktransactionrecord %}
                                     {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
@@ -185,6 +197,7 @@
                                 <td class="align-middle">{{ nonstock.TransactionTo }}</td>
                                 <td class="align-middle">{{ nonstock.TruckType }}</td>
                                 <td class="align-middle">{{ nonstock.TransactionReqUser }}</td>
+                                <td class="align-middle">{{ nonstock.TransactionReqTime }}</td>
                                 <td class="align-middle">
                                     <a href="{% url 'emsapp:nonStockDetail' nonstock.TicketNo %}">
                                         <i class="fas fa-file-alt"></i>
@@ -212,6 +225,7 @@
                                 <td class="align-middle">{{ q.TransactionTo }}</td>
                                 <td class="align-middle">{{ q.TruckType }}</td>
                                 <td class="align-middle">{{ q.TransactionReqUser }}</td>
+                                <td class="align-middle">{{ q.TransactionReqTime }}</td>
                                 <td class="align-middle">
                                     <a href="{% url 'emsapp:nonStockDetail' q.TicketNo %}">
                                         <i class="fas fa-file-alt"></i>

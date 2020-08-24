@@ -7,7 +7,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -147,6 +147,17 @@
                                   </div>
                                 {% endif %}
                             </div>
+                            <div class="row">
+                                <div class="col-md-12 my-auto">
+                                    {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="text-center font-weight-bold text-danger">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="px-3 table-responsive">
@@ -154,11 +165,12 @@
                             <thead class="blue-grey darken-2 text-white">
                                 <tr>
                                     <th scope="col th-sm">#</th>
-                                    <th scope="col th-sm">T.R. TicketNo</th>
+                                    <th scope="col th-sm">T.R.TicketNo</th>
                                     <th scope="col th-sm">TransFrom</th>
                                     <th scope="col th-sm">TransTo</th>
                                     <th scope="col th-sm">TruckType</th>
-                                    <th scope="col th-sm">TransReqUser</th>
+                                    <th scope="col th-sm">ReqUser</th>
+                                    <th scope="col th-sm">ReqTime</th>
                                     <th scope="col th-sm">Description</th>
                                     <th scope="col th-sm">Det.</th>
                                     {% if perms.emsapp.delete_transactionrecord and perms.emsapp.change_transactionrecord and perms.emsapp.add_transactionrecord %}
@@ -177,6 +189,7 @@
                                 <td class="align-middle">{{ trans.TransactionTo }}</td>
                                 <td class="align-middle">{{ trans.TruckType }}</td>
                                 <td class="align-middle">{{ trans.TransactionReqUser }}</td>
+                                <td class="align-middle">{{ trans.TransactionReqTime }}</td>
                                 <td class="align-middle">{{ trans.Description }}</td>
                                 <td class="align-middle">
                                     <a href="{% url 'emsapp:transDetail' trans.TicketNo %}">
@@ -205,6 +218,8 @@
                                 <td class="align-middle">{{ q.TransactionTo }}</td>
                                 <td class="align-middle">{{ q.TruckType }}</td>
                                 <td class="align-middle">{{ q.TransactionReqUser }}</td>
+                                <td class="align-middle">{{ q.TransactionReqTime }}</td>
+                                <td class="align-middle">{{ q.Description }}</td>
                                 <td class="align-middle">
                                     <a href="{% url 'emsapp:transDetail' q.TicketNo %}">
                                         <i class="fas fa-file-alt"></i>

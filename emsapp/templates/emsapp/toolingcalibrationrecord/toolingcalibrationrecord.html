@@ -6,7 +6,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -132,10 +132,10 @@
                     <div class="card">
                         <div class="card-body card-body-cascade">
                             <div class="row">
-                                <div class="col-md-8 my-auto">
+                                <div class="col-md-5 my-auto">
                                     <h5 class="ml-auto my-auto font-weight-bold">Tool Calibration Record</h5>
                                 </div>
-                                <div class="col-md-4 d-flex justify-content-end">
+                                <div class="col-md-7 d-flex justify-content-end">
                                     {% if perms.emsapp.delete_toolingcalibrationrecord and perms.emsapp.change_toolingcalibrationrecord and perms.emsapp.add_toolingcalibrationrecord %}
                                     <div class="btn-group ml-auto" role="group" aria-label="First group">
                                         <form action="/emsapp/toolingcalibrationrecord/import/" class="mb-0" method="post" id="import-form" enctype="multipart/form-data">
@@ -146,12 +146,23 @@
                                             <input type="file" id="import" name="import" style="display: none;">
                                         </form>
                                     </div>
-                                    <div class="btn-group ml-3" role="group" aria-label="Third group">
+                                    <div class="btn-group ml-3" role="group" aria-label="Second group">
                                         {% comment %} change route here {% endcomment %}
                                         <button onclick="location.href='/emsapp/toolingcalibrationrecord/export'" id="t-export-modal" type="button" class="btn btn-blue py-2 px-3">
                                             <i class="fas fa-rocket pr-2" aria-hidden="true"></i>Export
                                         </button>
                                     </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 my-auto">
+                                    {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="text-center font-weight-bold text-danger">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -162,7 +173,7 @@
                                     <tr>
                                         {% comment %} change route here {% endcomment %}
                                         <th scope="col th-sm">#</th>
-                                        <th scope="col th-sm">T. No</th>
+                                        <th scope="col th-sm">T.No</th>
                                         <th scope="col th-sm">EnName</th>
                                         <th scope="col th-sm">CaliVendor</th>
                                         <th scope="col th-sm">CaliStart</th>

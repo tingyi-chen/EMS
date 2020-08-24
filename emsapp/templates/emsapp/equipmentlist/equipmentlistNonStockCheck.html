@@ -22,7 +22,7 @@ label {
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -151,19 +151,21 @@ label {
                                 <table id="n-t-table" class="table table-hover" width="100%">
                                     <colgroup>
                                         <col style="width: 10%;">
+                                        <col style="width: 10%;">
                                         <col style="width: 15%;">
                                         <col style="width: 15%;">
-                                        <col style="width: 20%;">
                                         <col style="width: 10%;">
                                         <col style="width: 10%;">
                                         <col style="width: 10%;">
                                         <col style="width: 10%;">
                                         <col style="width: 5%;">
+                                        <col style="width: 5%;">
                                     </colgroup>
                                     <thead class="blue-grey darken-2 text-white">
                                         <tr>
-                                            <th scope="col th-sm">E. No</th>
-                                            <th scope="col th-sm">N.S. No</th>
+                                            <th scope="col th-sm">E.No</th>
+                                            <th scope="col th-sm">N.S.No</th>
+                                            <th scope="col th-sm">EnName</th>
                                             <th scope="col th-sm">TransReqUser</th>
                                             <th scope="col th-sm">TransReqTime</th>
                                             <th scope="col th-sm">TransFrom</th>
@@ -179,6 +181,7 @@ label {
                                     <tr>
                                         <td class="align-middle">{{ data.detail.EquipmentNo }}</td>
                                         <td class="align-middle">{{ data.detail.NonStockNo }}</td>
+                                        <td class="align-middle">{{ data.detail.EnName }}</td>
                                         <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.TransactionReqUser|as_crispy_field }}</td>
                                         <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.TransactionReqTime|as_crispy_field }}</td>
                                         <td class="align-middle">{{ data.detail.Location }}</td>

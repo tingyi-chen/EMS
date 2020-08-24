@@ -7,7 +7,7 @@
     <nav id="sidebar">
         <div class="p-4">
             <a class="navbar-brand font-weight-bold my-2" href="/emsapp/home/asset">
-                <i class="fas fa-warehouse mr-4"></i>EMS
+                <i class="fas fa-warehouse mr-4"></i>MIKI
             </a>
             <ul class="list-unstyled components mb-5">
               <li class="nav-item">
@@ -121,16 +121,16 @@
                 </div>
                 <div class="col-md-5 my-auto d-flex justify-content-end">
                     {% if perms.emsapp.delete_toolingcalibrationrecord and perms.emsapp.change_toolingcalibrationrecord%}
-                        <button class="btn btn-dark">
-                            <a href="{% url 'emsapp:toolingCalibrationUpdate' toolingcalibrationrecord.TicketNo %}">
-                                <i class="fas fa-pen-square"></i>
-                            </a>
-                        </button>
-                        <button class="btn btn-dark">
-                            <a href="{% url 'emsapp:toolingCalibrationDelete' toolingcalibrationrecord.TicketNo %}" onclick="return confirm('Are you sure to delete this row?')"> 
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </button>
+                    <a href="{% url 'emsapp:toolingCalibrationUpdate' toolingcalibrationrecord.TicketNo %}">
+                      <button class="btn btn-dark">
+                        <i class="fas fa-pen-square"></i>
+                      </button>
+                    </a>
+                      <button class="btn btn-dark">
+                        <a href="{% url 'emsapp:toolingCalibrationDelete' toolingcalibrationrecord.TicketNo %}" onclick="return confirm('Are you sure to delete this row?')"> 
+                          <i class="fas fa-trash"></i>
+                        </a>
+                      </button>
                     {% endif %}
                 </div>
                 <div class="col-md-12">
@@ -139,7 +139,29 @@
                             <div class="row">
                                 <div class="col-md-5 mx-3 my-3">
                                     <div class="view overlay">
-                                        <img src="/static/emsapp/img/screw.jpg" class="img-fluid" alt="img of {{ toolingcalibrationrecord.EquipmentNo }}">
+                                        <div id="carouselExampleControls" class="carousel slide carousel-fade" data-ride="carousel">
+                                            <div class="carousel-inner">
+                                                {% for photo in PhotoLink %}
+                                                    {% if forloop.first %}
+                                                        <div class="carousel-item active">
+                                                            <img src="/media/{{ photo }}" class="d-block w-100" alt="img of {{ toolingcalibrationrecord.CalibratedTicketNo }}">
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="carousel-item">
+                                                            <img src="/media/{{ photo }}" class="d-block w-100" alt="img of {{ toolingcalibrationrecord.CalibratedTicketNo }}">
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="sr-only">Previous</span>
+                                            </a>
+                                            <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="sr-only">Next</span>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-5 text-md-left ml-3 mt-3">
@@ -170,45 +192,45 @@
                         <h5 class="ml-auto mb-3 font-weight-bold">Full Detail</h5>
                             <div class="row">
                                 <div class="col-md-4 text-md-left">
-                                    <span>Calibrated Ticket No</sapn>
+                                    <span class="border-bottom">Calibrated Ticket No</sapn>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.CalibratedTicketNo }}</p>
-                                    <span>Equipment No</sapn>
+                                    <span class="border-bottom">Equipment No</sapn>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.EquipmentNo }}</p>
-                                    <span>Module No</sapn>
+                                    <span class="border-bottom">Module No</sapn>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.ModuleNo }}</p>
-                                    <span>Location</span>
+                                    <span class="border-bottom">Location</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.Location }}</p>
-                                    <span>ProdVendor</span>
+                                    <span class="border-bottom">ProdVendor</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.ProdVendor }}</p>
-                                    <span>CaliVendor</span>
+                                    <span class="border-bottom">CaliVendor</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.CaliVendor }}</p>
                                 </div>
                                 <div class="col-md-4 text-md-left">
-                                    <span>MQ Start Time</span>
+                                    <span class="border-bottom">MQ Start Time</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.MQStartTime }}</p>
-                                    <span>MQ End Time</span>
+                                    <span class="border-bottom">MQ End Time</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.MQEndTime }}</p>
-                                    <span>Unit Price</span>
+                                    <span class="border-bottom">Unit Price</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.UnitPrice }}</p>
-                                    <span>Last Due Date</span>
+                                    <span class="border-bottom">Last Due Date</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.LastDueDate }}</p>
-                                    <span>Next Due Date</span>
+                                    <span class="border-bottom">Next Due Date</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.NextDueDate }}</p>
-                                    <span>Calibrated Ticket Create Date</span>
+                                    <span class="border-bottom">Calibrated Ticket Create Date</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.CalibratedTicketCrateDate }}</p>
                                 </div>
                                 <div class="col-md-4 text-md-left">
-                                    <span>Calibrated Cost</span>
+                                    <span class="border-bottom">Calibrated Cost</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.CalibratedCost }}</p>
-                                    <span>Alert Time</span>
+                                    <span class="border-bottom">Alert Time</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.AlertTime }}</p>
-                                    <span>Avg Calibrated Period</span>
+                                    <span class="border-bottom">Avg Calibrated Period</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.AvgCalibratedPeriod }}</p>
-                                    <span>Calibrated Report</span>
+                                    <span class="border-bottom">Calibrated Report</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.CalibratedReport }}</p>
-                                    <span>Photo Link</span>
+                                    <span class="border-bottom">Photo Link</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.PhotoLink }}</p>
-                                    <span>Comment</span>
+                                    <span class="border-bottom">Comment</span>
                                     <p class="font-weight-bold">{{ toolingcalibrationrecord.Comment }}</p>
                                 </div>
                             </div>
