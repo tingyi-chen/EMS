@@ -271,6 +271,8 @@ def update(request, pk):
                 eqno=orig_data['EquipmentNo'],
                 ntno=orig_data['NonStockTicketNo'],
                 nsno=orig_data['NonStockNo'],
+                name=orig_data['Name'],
+                en_name=orig_data['EnName'],
                 nonstock_space=orig_data['NonStockSpace'],
                 photo=orig_data['PhotoLink'],
             )
@@ -299,6 +301,8 @@ def update(request, pk):
                 eqno=orig_data['EquipmentNo'],
                 atno=orig_data['AssetLoanTicketNo'],
                 asno=orig_data['AssetNo'],
+                name=orig_data['Name'],
+                en_name=orig_data['EnName'],
                 photo=orig_data['PhotoLink'],
                 location=orig_data['Location'],
             )

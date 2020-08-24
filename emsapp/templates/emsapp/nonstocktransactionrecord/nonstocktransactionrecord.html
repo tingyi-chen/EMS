@@ -174,7 +174,9 @@
                             <thead class="blue-grey darken-2 text-white">
                                 <tr>
                                     <th scope="col th-sm">#</th>
-                                    <th scope="col th-sm">NonStock No</th>
+                                    <th scope="col th-sm">NonStockNo</th>
+                                    <th scope="col th-sm">Name</th>
+                                    <th scope="col th-sm">EnName</th>
                                     <th scope="col th-sm">TransFrom</th>
                                     <th scope="col th-sm">TransTo</th>
                                     <th scope="col th-sm">TruckType</th>
@@ -193,6 +195,8 @@
                             <tr>
                             <th scope="row" class="align-middle">{{ nonstock.TicketNo }}</th>
                                 <td class="align-middle">{{ nonstock.NonStockNo }}</td>
+                                <td class="align-middle">{{ nonstock.Name }}</td>
+                                <td class="align-middle">{{ nonstock.EnName }}</td>
                                 <td class="align-middle">{{ nonstock.TransactionFrom }}</td>
                                 <td class="align-middle">{{ nonstock.TransactionTo }}</td>
                                 <td class="align-middle">{{ nonstock.TruckType }}</td>
