@@ -26,7 +26,6 @@ urlpatterns = [
     url(r'^home/asset/$', views.HomeView.asset, name='homeAsset'),
     url(r'^home/tool/$', views.HomeView.tool, name='homeTool'),
     url(r'^home/nonstock/$', views.HomeView.nonstock, name='homeNonStock'),
-    url(r'^home/others/$', views.HomeView.others, name='homeOthers'),
 
     url(r'^trashbin/asset/$', views.TrashBinView.asset, name='trashBinAsset'),
     url(r'^trashbin/tool/$', views.TrashBinView.tool, name='trashBinTool'),

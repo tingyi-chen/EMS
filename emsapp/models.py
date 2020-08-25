@@ -14,7 +14,7 @@ class EquipmentList(models.Model):
     ToolingNo = models.CharField(max_length=255,blank=True, default='', validators=[RegexValidator(r'^[A-Za-z0-9- ]+$')])
     ModuleNo = models.CharField(max_length=255, blank=True, default='', validators=[RegexValidator(r'^[A-Za-z0-9\"\/\_\-\/ ]+$')])
     Name = models.CharField(max_length=255, blank=True, default='')
-    EnName = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
+    EnName = models.CharField(max_length=4000, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
     SerialNumber = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9- ]+$')])
     EquipmentOwnerID = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9 ]+$')])
     EquipmentOwnerName = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9 ]+$')])
@@ -34,8 +34,8 @@ class EquipmentList(models.Model):
     Weight = models.FloatField(null=True, default=0)
     Status = models.CharField(max_length=255, default='')
     Cost = models.FloatField(null=True, blank=True, default=0)
-    ChDescription = models.CharField(max_length=255, blank=True, default='')
-    EnDescription = models.CharField(max_length=255, blank=True, default='')
+    ChDescription = models.CharField(max_length=4000, blank=True, default='')
+    EnDescription = models.CharField(max_length=4000, blank=True, default='')
     LimitFreezeQnty = models.IntegerField(default=1, validators=[RegexValidator(r'^[0-9]+$')])
     Specification = models.CharField(max_length=255, blank=True, default='')
     Limitations = models.CharField(max_length=255, blank=True, default='')
@@ -239,3 +239,30 @@ class ActionLog(models.Model):
 
     def __str__(self):
         return str(self.User)
+
+class AssetQnty(models.Model):
+    Year = models.CharField(max_length=255, default=None)
+    Month = models.CharField(max_length=255, default=None)
+    Day = models.CharField(max_length=255, default=None)
+    Quantity = models.CharField(max_length=4000, default=None)
+
+    def __str__(self):
+        return str(self.Quantity)
+
+class ToolQnty(models.Model):
+    Year = models.CharField(max_length=255, default=None)
+    Month = models.CharField(max_length=255, default=None)
+    Day = models.CharField(max_length=255, default=None)
+    Quantity = models.CharField(max_length=4000, default=None)
+    
+    def __str__(self):
+        return str(self.Quantity)
+
+class NonStockQnty(models.Model):
+    Year = models.CharField(max_length=255, default=None)
+    Month = models.CharField(max_length=255, default=None)
+    Day = models.CharField(max_length=255, default=None)
+    Quantity = models.CharField(max_length=4000, default=None)
+    
+    def __str__(self):
+        return str(self.Quantity)

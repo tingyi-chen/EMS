@@ -1,19 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import generic
-from django.http import HttpResponse
 from django.contrib import auth, messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required, permission_required
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.models import Permission
 from django.contrib.auth.views import LoginView, LogoutView
-from django.db.models import Q
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
+from django.db.models import Q, Max
 from django.core import serializers
 from django.middleware.csrf import get_token
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db.models import Max
 from django.forms import formset_factory
 import pandas as pd
 import requests
@@ -25,23 +23,8 @@ from docx import Document
 from dateutil.relativedelta import *
 from bootstrap_datepicker_plus import DatePickerInput
 
-from .models import EquipmentList, AssetLoanRecord, ToolingCalibrationRecord, NonStockTransactionRecord, TransactionRecord, Location, ActionLog
+from .models import EquipmentList, AssetLoanRecord, ToolingCalibrationRecord, NonStockTransactionRecord, TransactionRecord, Location, ActionLog, AssetQnty, ToolQnty, NonStockQnty
 from .forms import EquipmentForm, AssetLoanRecordForm, ToolingCalibrationRecordForm, NonStockTransactionRecordForm, TransactionRecordForm
-'''
-Note:
-1. views.py:                (1) Define all pages that show to users;
-                            (2) Call .html files.
-                            (3) Control requests and resonses, finally render to users.
-                            (4) Bridge to connect DB.
-2. template_name:           Override the default .html file path and name.
-3. context_object_name:     Override the default variable that sends to .html files.
-4. get_queryset(self):      (1) Default function binding with generic.ListView, and then return "django QuerySet object".
-                            (2) Will be executed by django itself.
-                            (3) Will be passed to context_object_name.
-                            i.e. Model.objects.all() returns all column data in a row.
-5. form.cleaned_data['']:   This assignment can catch variables in the post form and then make further usages.
-6. form.save():             Save changes to MSSQL DB, this will insert a new row.
-'''
 
 model_list = {
     'equipmentlist': EquipmentList,
@@ -109,28 +92,6 @@ all_admin_tuple = (
     'emsapp.delete_transactionrecord',
     'emsapp.view_transactionrecord',
 )
-date_dict = {
-    'Asset': {
-        '2020':{'Jul': ['31']}
-    },
-    'Tool': {
-        '2020':{'Jul': ['31']}
-    },
-    'NonStock': {
-        '2020':{'Jul': ['31']}
-    }
-}
-value_dict = {
-    'Asset': {
-        '2020':{'Jul': [0]}
-    },
-    'Tool': {
-        '2020':{'Jul': [0]}
-    },
-    'NonStock': {
-        '2020':{'Jul': [0]}
-    }
-}
 
 def make_log(request, action):
     user = request.user
@@ -208,9 +169,9 @@ def update(request, pk):
             )
             photo_list = orig_data['PhotoLink'].split(';')
             data = {
-                'equipment_list': EquipmentList.objects.filter(~Q(Deleted=True)).all(),
+                'equipment_list': model.objects.filter(~Q(Deleted=True)).all(),
                 'form': form,
-                'photos': orig_data['PhotoLink'].split(';')
+                'photos': photo_list
             }
             create_validation(request, form, photo_list, redirect_url, render_path, data)
             if form.is_valid():
@@ -346,19 +307,12 @@ def update(request, pk):
                         'form': form
                         }
                     )
-    else:
-        return HttpResponse('You Are Not Allowed to Do So')
 
 @login_required
 @permission_required(all_admin_tuple, raise_exception=True)
 def delete(request, pk):
-    '''
-    Note
-    (1) Here's a hidden self.user parameter which contains user info
-    '''
     redirect_url = '/emsapp/' + request.path.split('/')[2]
     model = model_list[request.path.split('/')[2]]
-
     if model == EquipmentList:
         obj = model.objects.filter(CountIndex=pk)
     else:
@@ -373,7 +327,6 @@ def delete(request, pk):
 def recovery(request, pk):
     redirect_url = '/emsapp/' + request.path.split('/')[2]
     model = model_list[request.path.split('/')[2]]
-
     data = model.objects.get(pk=pk)
     data.Deleted = False
     data.save()
@@ -424,7 +377,6 @@ def create_form(request, *args, **kwargs):
         )
         return form
     elif model == EquipmentList:
-        print(123)
         e_obj = model.objects
         if e_obj.all() and e_obj.filter(EquipmentNo__icontains='E'):
             pk = str(e_obj.filter(EquipmentNo__icontains='E').latest('CountIndex'))
@@ -681,7 +633,6 @@ def xlsx_export(request):
     redirect_url = '/emsapp/' + request.path.split('/')[2]
     export_name = request.path.split('/')[2] + '_' + str(datetime.date.today().strftime('%Y_%m_%d')) + '_export.xlsx'
     model = model_list[request.path.split('/')[2]]
-
     df = pd.DataFrame()
     qs = model.objects.all()
     for q in qs.values():
@@ -700,9 +651,7 @@ def xlsx_import(request):
     file_save = fs.save(file_name.name, file_name)
     file_url = fs.url(file_save)
     file_path = os.path.abspath(os.getcwd() + file_url)
-
     redirect_url = '/emsapp/' + request.path.split('/')[2]
-
     try:
         if request.path.split('/')[2] == 'equipmentlist':
             e_obj = EquipmentList.objects
@@ -1011,8 +960,7 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                                     }
                                 )      
                     return redirect('/emsapp/toolingcalibrationrecord')
-                                
-            
+
 class AssetCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormView):
     template_name = 'emsapp/equipmentlist/equipmentlistAssetCheck.html'
     template_name_post = 'emsapp/assetloanrecord/assetloanrecord.html'
@@ -1339,7 +1287,12 @@ class TransCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVi
             )
 
 class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
-    permission_required = ('emsapp.view_equipmentlist', 'emsapp.view_assetloanrecord', 'emsapp.view_toolingcalibrationrecord', 'emsapp.view_nonstocktransactionrecord')
+    permission_required = (
+        'emsapp.view_equipmentlist',
+        'emsapp.view_assetloanrecord',
+        'emsapp.view_toolingcalibrationrecord',
+        'emsapp.view_nonstocktransactionrecord'
+    )
     login_url = '/emsapp/accounts/login/'
     redirect_field_name = '/emsapp/home/asset/'
 
@@ -1347,35 +1300,49 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
     def asset(self):
         a_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Asset').all().count()
         
-        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
-        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
-        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
-        if year not in date_dict['Asset']:
-            print('1')
-            date_dict['Asset'][year] = {month: [day]}
-            value_dict['Asset'][year] = {month: [a_amount]}
-        elif month not in date_dict['Asset'][year]:
-            print('2')
-            date_dict['Asset'][year][month] = [day]
-            value_dict['Asset'][year][month] = [a_amount]
-        elif day not in date_dict['Asset'][year][month]:
-            print('3')
-            date_dict['Asset'][year][month].append(day)
-            value_dict['Asset'][year][month].append(a_amount)
-        else:
-            print('123')
-            pass
-
         labels = {
             'Location': [],
-            'a_lineX': date_dict['Asset']['2020']['Aug'],
+            'a_lineX': [],
         }
         data = {
             'a_amount': a_amount,
             'a_location': [],
-            'a_lineY': value_dict['Asset']['2020']['Aug'],
+            'a_lineY': [],
             'Asset': [],
         }
+
+        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
+        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
+        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
+
+        latest_qnty = AssetQnty.objects.filter(Year=year).filter(Month=month).filter(Day=day).values()
+        if not latest_qnty:
+            asset_qnty = AssetQnty(
+                Year=year,
+                Month=month,
+                Day=day,
+                Quantity=a_amount
+            )
+            asset_qnty.save()
+
+        for each in AssetQnty.objects.all().values():
+            labels['a_lineX'].append(each['Year']+each['Month']+each['Day'])
+            data['a_lineY'].append(int(each['Quantity']))
+        # if year not in date_dict['Asset']:
+        #     print('1')
+        #     date_dict['Asset'][year] = {month: [day]}
+        #     value_dict['Asset'][year] = {month: [a_amount]}
+        # elif month not in date_dict['Asset'][year]:
+        #     print('2')
+        #     date_dict['Asset'][year][month] = [day]
+        #     value_dict['Asset'][year][month] = [a_amount]
+        # elif day not in date_dict['Asset'][year][month]:
+        #     print('3')
+        #     date_dict['Asset'][year][month].append(day)
+        #     value_dict['Asset'][year][month].append(a_amount)
+        # else:
+        #     print('123')
+        #     pass
 
         asset_list = EquipmentList.objects.filter(EquipmentType__icontains='Asset').filter(~Q(Deleted=True)).order_by('AssetLoanedReturnDate').values()
         for asset in asset_list:
@@ -1401,33 +1368,31 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
     @login_required
     def tool(self):
         t_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').all().count()
-
-        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
-        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
-        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
-        if year not in date_dict['Tool']:
-            date_dict['Tool'][year] = {month: [day]}
-            value_dict['Tool'][year] = {month: [t_amount]}
-        elif month not in date_dict['Tool'][year]:
-            date_dict['Tool'][year][month] = [day]
-            value_dict['Tool'][year][month] = [t_amount]
-        elif day not in date_dict['Tool'][year][month]:
-            date_dict['Tool'][year][month].append(day)
-            value_dict['Tool'][year][month].append(t_amount)
-        else:
-            pass
-
         labels = {
             'Location': ['Cali'],
-            't_lineX': date_dict['Tool']['2020']['Aug'],
+            't_lineX': [],
         }
         data = {
             't_amount': t_amount,
             't_location': [EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(Q(Status='Cali')|Q(Status='MQ')).count()],
-            't_lineY': value_dict['Tool']['2020']['Aug'],
+            't_lineY': [],
             'Tool': [],
         }
-        
+        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
+        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
+        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
+        latest_qnty = ToolQnty.objects.filter(Year=year).filter(Month=month).filter(Day=day).values()
+        if not latest_qnty:
+            tool_qnty = ToolQnty(
+                Year=year,
+                Month=month,
+                Day=day,
+                Quantity=t_amount
+            )
+            tool_qnty.save()
+        for each in ToolQnty.objects.all().values():
+            labels['t_lineX'].append(each['Year']+each['Month']+each['Day'])
+            data['t_lineY'].append(int(each['Quantity']))
         tool_list = EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(Status='Active').filter(~Q(Deleted=True)).order_by('NextCalibratedDate').values()
         for tool in tool_list:
             next_date = tool['NextCalibratedDate']
@@ -1435,7 +1400,6 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
                 tool_date_delta = (next_date - datetime.date.today()).days
                 if tool_date_delta <= 60:
                     data['Tool'].append({'No': tool['ToolingNo'], 'Date': tool_date_delta})
-
         for loc_dict in Location.objects.all().values():
             loc = loc_dict['Location']
             if loc == 'WH':
@@ -1443,7 +1407,6 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             else:
                 labels['Location'].append(loc)
                 data['t_location'].append(EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(Status='Active').filter(~Q(Deleted=True)).filter(Location=loc).count())
-
         return render(
             self,
             'emsapp/overview/tool.html', {
@@ -1456,45 +1419,38 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
     def nonstock(self):
         n_space = 0
         n_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='NonS').all().count()
-
-        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
-        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
-        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
-        if year not in date_dict['NonStock']:
-            print('1')
-            date_dict['NonStock'][year] = {month: [day]}
-            value_dict['NonStock'][year] = {month: [n_amount]}
-        elif month not in date_dict['NonStock'][year]:
-            print('2')
-            date_dict['NonStock'][year][month] = [day]
-            value_dict['NonStock'][year][month] = [n_amount]
-        elif day not in date_dict['NonStock'][year][month]:
-            print('3')
-            date_dict['NonStock'][year][month].append(day)
-            value_dict['NonStock'][year][month].append(n_amount)
-        else:
-            print('123')
-            pass
-        
         ns_space = EquipmentList.objects.filter(EquipmentType__icontains='NonS').filter(Status__icontains='InActive').filter(~Q(Deleted=True)).values()
         for ns in ns_space:
             space = ns['NonStockSpace']
             if space:
-                print(space)
                 n_space = n_space + space
-
+        n_space_percent = n_space/500*100
         labels = {
             'Location': [],
-            'n_lineX': date_dict['NonStock']['2020']['Aug'],
+            'n_lineX': [],
         }
         data = {
             'n_amount': n_amount,
             'n_location': [],
-            'n_lineY': value_dict['NonStock']['2020']['Aug'],
+            'n_lineY': [],
             'NonStock': [],
-            'ns_space': n_space,
+            'ns_space': n_space_percent,
         }
-
+        year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
+        month = datetime.date.today().strftime('%Y-%b-%d').split('-')[1]
+        day = (datetime.date.today()+relativedelta(days=-1)).strftime('%Y-%b-%d').split('-')[2]
+        latest_qnty = NonStockQnty.objects.filter(Year=year).filter(Month=month).filter(Day=day).values()
+        if not latest_qnty:
+            nons_qnty = NonStockQnty(
+                Year=year,
+                Month=month,
+                Day=day,
+                Quantity=n_amount
+            )
+            nons_qnty.save()
+        for each in NonStockQnty.objects.all().values():
+            labels['n_lineX'].append(each['Year']+each['Month']+each['Day'])
+            data['n_lineY'].append(int(each['Quantity']))
         ns_list = EquipmentList.objects.filter(EquipmentType__icontains='NonS').filter(Status='InActive').filter(~Q(Deleted=True)).order_by('LastNonStockShipDate').values()
         for ns in ns_list:
             date = ns['LastNonStockShipDate']
@@ -1515,23 +1471,6 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
                 'data': data
             }
         )
-
-    @login_required
-    def others(self):
-        o_obj = EquipmentList.objects.filter(~Q(Deleted=True)).filter(Q(EquipmentType__icontains='Others'))
-        o_amount = o_obj.all().count()
-        o_TMC1 = o_obj.filter(Location='TMC-1').count()
-        o_TMC2 = o_obj.filter(Location='TMC-2').count()
-        o_others = o_obj.filter((~Q(Location='TMC-1')&~Q(Location='TMC-2'))).count()
-        labels = {
-            'Location': ['TMC-1', 'TMC-2', 'others'],
-        }
-        data = {
-            'o_amount': o_amount,
-            'o_location': [o_TMC1, o_TMC2, o_others],
-        }
-
-        return render(self, 'emsapp/overview/others.html', {'labels': labels, 'data': data,})
 
     @login_required
     def info(self):
@@ -1968,7 +1907,6 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
         redirect_url = '/emsapp/toolingcalibrationrecord/'
         form = ToolingCalibrationRecordForm(request.POST, request.FILES)
         data = {'toolingcalibration_record': self.t_obj.all(), 'form': form}
-        print(request.POST.dict())
         if form.is_valid():
             form.save()
             eqno = form.cleaned_data['EquipmentNo']
