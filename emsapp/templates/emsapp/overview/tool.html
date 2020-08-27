@@ -162,23 +162,23 @@
                   <h5 class="ml-auto mb-3 font-weight-bold">Reminder</h5>
                     <div class="px-3 table-responsive">
                       <table id="overview-t-table" class="table table-hover" width="100%">
-                        <thead class="text-white orange">
+                        <thead class="text-white orange text-center">
                           <tr>
-                            <th scope="col th-sm">ToolingNo</th>
                             <th scope="col th-sm">Date</th>
+                            <th scope="col th-sm">ToolingNo</th>
                           </tr>
                         </thead>
                         <tbody id="item-lists">
                         {% for tool in data.Tool %}
                         {% if tool.Date < 0 %}
-                        <tr class="orange lighten-4">
-                          <th scope="row">{{ tool.No }}</th>
-                          <td>{{ tool.Date }}</td>
+                        <tr class="orange lighten-4 text-center">
+                          <th scope="row">{{ tool.Date }}</th>
+                          <td>{{ tool.No }}</td>
                         </tr>
                         {% else %}
-                        <tr>
-                          <th scope="row">{{ tool.No }}</th>
-                          <td>{{ tool.Date }}</td>
+                        <tr class="text-center">
+                          <th scope="row">{{ tool.Date }}</th>
+                          <td>{{ tool.No }}</td>
                         </tr>
                         {% endif %}
                         {% endfor %}
@@ -245,7 +245,7 @@
   $('#tool-pie-chart').click(function(e) {
     var activePoints = toolPie.getElementsAtEvent(e);
     var query = toolPie.data.labels[activePoints[0]._index]
-    location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&toolNo=&ownerName=&location='+query+'&nonStockNo=&site=&type=Tool'
+    location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&teamGroup=&toolNo=&ownerName=&location='+query+'&equipmentGroup=&nonStockNo=&site=&type=Tool&toolingGroup='
     // => activePoints is an array of points on the canvas that are at the same position as the click event.
   });
   var lineConfig = {

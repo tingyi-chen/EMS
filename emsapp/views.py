@@ -167,6 +167,8 @@ def update(request, pk):
                 date=orig_data['CreateDate'],
                 update=True
             )
+            form.fields['LastCalibratedDate'].widget.attrs['readonly'] = True
+            form.fields['NextCalibratedDate'].widget.attrs['readonly'] = True
             photo_list = orig_data['PhotoLink'].split(';')
             data = {
                 'equipment_list': model.objects.filter(~Q(Deleted=True)).all(),
@@ -188,6 +190,7 @@ def update(request, pk):
                 make_log(request, action_statement)
                 return redirect(redirect_url)
             else:
+                print(form.errors)
                 return render(request, render_path, data)
         elif model == ToolingCalibrationRecord:
             orig_data = model.objects.filter(TicketNo=pk).values()[0]
@@ -206,9 +209,14 @@ def update(request, pk):
                 photo=orig_data['PhotoLink'],
                 pr_vendor=orig_data['ProdVendor'],
                 location=orig_data['Location'],
+                last_due_date=orig_data['LastDueDate'],
             )
             if form.is_valid():
                 form.save()
+                eq = EquipmentList.objects.get(EquipmentNo=orig_data['EquipmentNo'])
+                eq.NextCalibratedDate = form.cleaned_data['NextDueDate']
+                eq.PlanCalDate = eq.NextCalibratedDate - relativedelta(months=1)
+                eq.save()
                 action_statement = 'Update ToolingCalibrationRecord with ToolingNo: ' + orig_data['ToolingNo']
                 make_log(request, action_statement)
                 return redirect('/emsapp/toolingcalibrationrecord')
@@ -236,6 +244,7 @@ def update(request, pk):
                 en_name=orig_data['EnName'],
                 nonstock_space=orig_data['NonStockSpace'],
                 photo=orig_data['PhotoLink'],
+                trans_from=orig_data['TransactionFrom'],
             )
             if form.is_valid():
                 form.save()
@@ -292,6 +301,7 @@ def update(request, pk):
                 description=orig_data['Description'],
                 ttno=orig_data['TransactionTicketNo'],
                 photo=orig_data['PhotoLink'],
+                trans_from=orig_data['TransactionFrom'],
             )
             if form.is_valid():
                 form.save()
@@ -360,8 +370,7 @@ def create_form(request, *args, **kwargs):
         photo = e_obj['PhotoLink']
         location = e_obj['Location']
         pr_vendor = e_obj['ProdVendor']
-        last_due_date = e_obj['LastCalibratedDate']
-        next_due_date = e_obj['NextCalibratedDate']
+        last_due_date = e_obj['NextCalibratedDate']
         form = ToolingCalibrationRecordForm(
             user=request.user,
             tcno=tcno,
@@ -373,7 +382,6 @@ def create_form(request, *args, **kwargs):
             pr_vendor=pr_vendor,
             location=location,
             last_due_date=last_due_date,
-            next_due_date=next_due_date
         )
         return form
     elif model == EquipmentList:
@@ -412,6 +420,7 @@ def create_form(request, *args, **kwargs):
         photo = e_obj['PhotoLink']
         name = e_obj['Name']
         en_name = e_obj['EnName']
+        trans_from = e_obj['Location']
         form = NonStockTransactionRecordForm(
             user=request.user,
             ntno=ntno,
@@ -420,7 +429,8 @@ def create_form(request, *args, **kwargs):
             nsno=nsno,
             photo=photo,
             name=name,
-            en_name=en_name
+            en_name=en_name,
+            trans_from=trans_from,
         )
         return form
     elif model == TransactionRecord:
@@ -440,11 +450,13 @@ def create_form(request, *args, **kwargs):
             ttno = 'TR_' + format(1, '06d')
         eqno = e_obj['EquipmentNo']
         photo = e_obj['PhotoLink']
+        trans_from = e_obj['Location']
         form = TransactionRecordForm(
             user=request.user,
             ttno=ttno,
             eqno=eqno,
             photo=photo,
+            trans_from=trans_from,
         )
         return form
     elif model == AssetLoanRecord:
@@ -631,14 +643,14 @@ def search(request):
 @permission_required(all_admin_tuple, raise_exception=True)
 def xlsx_export(request):
     redirect_url = '/emsapp/' + request.path.split('/')[2]
-    export_name = request.path.split('/')[2] + '_' + str(datetime.date.today().strftime('%Y_%m_%d')) + '_export.xlsx'
+    export_name = request.path.split('/')[2] + '_' + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_M_%S')) + '_export.xlsx'
     model = model_list[request.path.split('/')[2]]
     df = pd.DataFrame()
     qs = model.objects.all()
     for q in qs.values():
         df2 = pd.DataFrame.from_dict(q, orient='index').T
         df = pd.concat([df, df2])
-    df.to_excel('C:\\Users\\kchen171277\\Desktop\\' + export_name, index=False)
+    df.to_excel('media\\export\\'+ export_name, index=False)
     action_statement = 'Export ' + request.path.split('/')[2].upper() + ' to Desktop: ' + export_name
     make_log(request, action_statement)
     return redirect(redirect_url)
@@ -647,7 +659,7 @@ def xlsx_export(request):
 def xlsx_import(request):
     file_name = request.FILES['import']
     # fs = FileSystemStorage(location='media/import/', base_url='/media/import/')
-    fs = FileSystemStorage()
+    fs = FileSystemStorage(location='media/import/', base_url='/media/import/')
     file_save = fs.save(file_name.name, file_name)
     file_url = fs.url(file_save)
     file_path = os.path.abspath(os.getcwd() + file_url)
@@ -832,9 +844,10 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
         eq_list = []
         tg_list = []
         data_list = self.get_data_list()
-        vd_list = ''.join(request.POST.getlist('CaliVendor')).split()
-        lc_list = ''.join(request.POST.getlist('Location')).split()
-        acp_list = list(''.join(request.POST.getlist('AvgCalibratedPeriod')))
+        vd_list = request.POST.getlist('CaliVendor')
+        # vd_list = ''.join(request.POST.getlist('CaliVendor')).split()
+        # lc_list = ''.join(request.POST.getlist('Location')).split()
+        # acp_list = list(''.join(request.POST.getlist('AvgCalibratedPeriod')))
         for each in request.POST.getlist('EquipmentNo'):
             eq_list.append(each)
             total_count = total_count + 1
@@ -910,7 +923,7 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                             'CalibratedStartTime': datetime.date.today().strftime('%Y-%m-%d'),
                             'ExpectedCalibratedEndTime': (datetime.date.today() + relativedelta(days=14)).strftime('%Y-%m-%d'),
                             'LastDueDate': datetime.date.today().strftime('%Y-%m-%d'),
-                            'NextDueDate': (datetime.date.today() + relativedelta(years=1)).strftime('%Y-%m-%d'),
+                            'NextDueDate': None,
                             'ProdVendor': e_obj['ProdVendor'],
                             'CaliVendor': vd_list[idx],
                             'Location': e_obj['Location']
@@ -934,8 +947,8 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                                 eq = EquipmentList.objects.get(EquipmentNo=eqno)
                                 eq.Status = 'Cali'
                                 eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
-                                eq.NextCalibratedDate = (datetime.date.today() + relativedelta(years=+1)).strftime('%Y-%m-%d')
-                                eq.PlanCalDate = (datetime.date.today() + relativedelta(years=+1) - relativedelta(months=1)).strftime('%Y-%m-%d')
+                                eq.NextCalibratedDate = None
+                                # eq.PlanCalDate = (datetime.date.today() + relativedelta(years=1) - relativedelta(months=1)).strftime('%Y-%m-%d')
                                 eq.LastModifyUser = str(request.user)
                                 eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
                                 eq.save()
@@ -943,8 +956,8 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                                 row_cells[0].text = eqno
                                 row_cells[1].text = EquipmentList.objects.filter(EquipmentNo=eqno).values()[0]['ChDescription']
                                 document.add_page_break()
-                                export_name = 'cali_list' + '_' + str(datetime.date.today().strftime('%Y_%m_%d'))
-                                document.save('C:\\Users\\kchen171277\\Desktop\\' + export_name)
+                                export_name = 'calilist' + '_' + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
+                                document.save('media\\export' + export_name)
                                 action_statement = 'Create ToolingCalibrationRecord with: ' + str(post.dict())
                                 make_log(request, action_statement)
                             else:
@@ -993,7 +1006,6 @@ class AssetCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVi
         data_list = self.get_data_list()
         if request.POST.getlist('EquipmentNo'):
             for idx, each in enumerate(request.POST.getlist('EquipmentNo')):
-                print(idx, each)
                 a_obj = AssetLoanRecord.objects
                 if a_obj.all() and a_obj.filter(AssetLoanTicketNo__icontains='A'):
                     pk = str(a_obj.filter(AssetLoanTicketNo__icontains='A').latest('TicketNo'))
@@ -1041,7 +1053,7 @@ class AssetCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVi
                             eq.Status = 'Loaned'
                             eq.LastModifyUser = str(request.user)
                             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
-                            eq.AssetLoanedReturnDate = str(loan_end)
+                            # eq.AssetLoanedReturnDate = str(loan_end)
                             eq.save()
                             action_statement = 'Create AssetLoanRecord with: ' + str(post.dict())
                             make_log(request, action_statement)
@@ -1344,7 +1356,7 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
         #     print('123')
         #     pass
 
-        asset_list = EquipmentList.objects.filter(EquipmentType__icontains='Asset').filter(~Q(Deleted=True)).order_by('AssetLoanedReturnDate').values()
+        asset_list = EquipmentList.objects.filter(EquipmentType__icontains='Asset').filter(EquipmentType='Loaned').filter(~Q(Deleted=True)).order_by('-AssetLoanedReturnDate').values()
         for asset in asset_list:
             return_date = asset['AssetLoanedReturnDate']
             if return_date:
@@ -1395,10 +1407,10 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             data['t_lineY'].append(int(each['Quantity']))
         tool_list = EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(Status='Active').filter(~Q(Deleted=True)).order_by('NextCalibratedDate').values()
         for tool in tool_list:
-            next_date = tool['NextCalibratedDate']
+            next_date = tool['PlanCalDate']
             if next_date:
                 tool_date_delta = (next_date - datetime.date.today()).days
-                if tool_date_delta <= 60:
+                if tool_date_delta <= 30:
                     data['Tool'].append({'No': tool['ToolingNo'], 'Date': tool_date_delta})
         for loc_dict in Location.objects.all().values():
             loc = loc_dict['Location']
@@ -1421,10 +1433,11 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
         n_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='NonS').all().count()
         ns_space = EquipmentList.objects.filter(EquipmentType__icontains='NonS').filter(Status__icontains='InActive').filter(~Q(Deleted=True)).values()
         for ns in ns_space:
-            space = ns['NonStockSpace']
+            space = float(ns['Width'])*float(ns['Height'])
             if space:
                 n_space = n_space + space
-        n_space_percent = n_space/500*100
+        n_space_percent = round(n_space/500*100*1.3, 2)
+        
         labels = {
             'Location': [],
             'n_lineX': [],
@@ -1456,6 +1469,7 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             date = ns['LastNonStockShipDate']
             if date:
                 ns_date_delta = (datetime.date.today() - date).days
+                print(ns_date_delta)
                 if ns_date_delta >= 180:
                     data['NonStock'].append({'No': ns['NonStockNo'], 'Date': ns_date_delta})
 
@@ -1472,43 +1486,43 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             }
         )
 
-    @login_required
-    def info(self):
-        data = {
-            'Asset': [],
-            'Tool': [],
-            'NonStock': [],
-        }
-        asset_list = AssetLoanRecord.objects.filter(~Q(Deleted=True)).order_by('LoanEndTime').values()
-        for asset in asset_list:
-            return_date = asset['LoanEndTime']
-            if return_date:
-                asset_date_delta = (return_date - datetime.date.today()).days
-                if asset_date_delta <= 60:
-                    data['Asset'].append(asset)
+    # @login_required
+    # def info(self):
+    #     data = {
+    #         'Asset': [],
+    #         'Tool': [],
+    #         'NonStock': [],
+    #     }
+    #     asset_list = AssetLoanRecord.objects.filter(~Q(Deleted=True)).order_by('LoanEndTime').values()
+    #     for asset in asset_list:
+    #         return_date = asset['LoanEndTime']
+    #         if return_date:
+    #             asset_date_delta = (return_date - datetime.date.today()).days
+    #             if asset_date_delta <= 60:
+    #                 data['Asset'].append(asset)
 
-        tool_list = ToolingCalibrationRecord.objects.filter(~Q(Deleted=True)).order_by('NextDueDate').values()
-        for tool in tool_list:
-            next_date = tool['NextDueDate']
-            if next_date:
-                tool_date_delta = (next_date - datetime.date.today()).days
-                if tool_date_delta <= 60:
-                    data['Tool'].append(tool)
+    #     tool_list = ToolingCalibrationRecord.objects.filter(~Q(Deleted=True)).order_by('NextDueDate').values()
+    #     for tool in tool_list:
+    #         next_date = tool['NextDueDate']
+    #         if next_date:
+    #             tool_date_delta = (next_date - datetime.date.today()).days
+    #             if tool_date_delta <= 60:
+    #                 data['Tool'].append(tool)
 
-        ns_list = NonStockTransactionRecord.objects.filter(~Q(Deleted=True)).order_by('TransactionReqTime').values()
-        for ns in ns_list:
-            date = ns['TransactionReqTime']
-            if date:
-                ns_date_delta = (datetime.date.today() - date).days
-                if ns_date_delta <= 180:
-                    data['NonStock'].append(ns)
+    #     ns_list = NonStockTransactionRecord.objects.filter(~Q(Deleted=True)).order_by('TransactionReqTime').values()
+    #     for ns in ns_list:
+    #         date = ns['TransactionReqTime']
+    #         if date:
+    #             ns_date_delta = (datetime.date.today() - date).days
+    #             if ns_date_delta <= 180:
+    #                 data['NonStock'].append(ns)
 
-        return render(
-            self,
-            'emsapp/overview/info.html', {
-                'data': data
-            }
-        )
+    #     return render(
+    #         self,
+    #         'emsapp/overview/info.html', {
+    #             'data': data
+    #         }
+    #     )
 
 class LoginView(LoginView):
     template_name = 'emsapp/registration/login.html'
@@ -1682,7 +1696,7 @@ class EquipmentFormView(LoginRequiredMixin, PermissionRequiredMixin, generic.For
             if form.is_valid():
                 instance = form.save(commit=False)
                 instance.EquipmentType = ";".join(request.POST.getlist('EquipmentType'))
-                instance.NonStockSpace = int(request.POST.get('Length'))*int(request.POST.get('Width'))
+                instance.NonStockSpace = float(request.POST.get('Length'))*float(request.POST.get('Width'))
                 for photo in request.FILES.getlist('PhotoLink'):
                     photo_list.append(photo.name)
                     instance.PhotoLink = photo
@@ -1694,36 +1708,36 @@ class EquipmentFormView(LoginRequiredMixin, PermissionRequiredMixin, generic.For
                 make_log(request, action_statement)
                 return redirect(redirect_url)
             else:
-                if tool_bool == True:
-                    post = request.POST.copy()
-                    post.update({
-                        'LastCalibratedDate': datetime.date.today().strftime('%Y-%m-%d'),
-                        'NextCalibratedDate': (datetime.date.today()+relativedelta(years=1)).strftime('%Y-%m-%d'),
-                    })
-                    request.POST = post
-                    form = EquipmentForm(request.POST, request.FILES)
-                    if form.is_valid:
-                        instance = form.save(commit=False)
-                        instance.EquipmentType = ";".join(request.POST.getlist('EquipmentType'))
-                        instance.NonStockSpace = int(request.POST.get('Length'))*int(request.POST.get('Width'))
-                        for photo in request.FILES.getlist('PhotoLink'):
-                            photo_list.append(photo.name)
-                            instance.PhotoLink = photo
-                            instance.save()
-                        photo_str = ";".join(photo_list)
-                        instance.PhotoLink = photo_str
-                        instance.save()
-                        action_statement = 'Create EquipentList with: ' + str(request.POST.dict())
-                        make_log(request, action_statement)
-                        return redirect(redirect_url)
-                    else:
-                        return render(
-                        request,
-                        self.template_name, {
-                            'equipment_list': self.e_obj.all(),
-                            'form': form
-                        }
-                    )
+                # if tool_bool == True:
+                #     post = request.POST.copy()
+                #     post.update({
+                #         'LastCalibratedDate': datetime.date.today().strftime('%Y-%m-%d'),
+                #         'NextCalibratedDate': (datetime.date.today()+relativedelta(years=1)).strftime('%Y-%m-%d'),
+                #     })
+                #     request.POST = post
+                #     form = EquipmentForm(request.POST, request.FILES)
+                #     if form.is_valid():
+                #         instance = form.save(commit=False)
+                #         instance.EquipmentType = ";".join(request.POST.getlist('EquipmentType'))
+                #         instance.NonStockSpace = float(request.POST.get('Length'))*float(request.POST.get('Width'))
+                #         for photo in request.FILES.getlist('PhotoLink'):
+                #             photo_list.append(photo.name)
+                #             instance.PhotoLink = photo
+                #             instance.save()
+                #         photo_str = ";".join(photo_list)
+                #         instance.PhotoLink = photo_str
+                #         instance.save()
+                #         action_statement = 'Create EquipentList with: ' + str(request.POST.dict())
+                #         make_log(request, action_statement)
+                #         return redirect(redirect_url)
+                #     else:
+                #         return render(
+                #         request,
+                #         self.template_name, {
+                #             'equipment_list': self.e_obj.all(),
+                #             'form': form
+                #         }
+                #     )
                 return render(
                     request,
                     self.template_name, {
@@ -1750,7 +1764,7 @@ class EquipmentListDetailView(LoginRequiredMixin, PermissionRequiredMixin, gener
         except ValueError:
             photo_url = '/'
         finally:
-            root_url = photo_url.rsplit('/', 1)[0] + '/'
+            root_url = photo_url.rsplit('/', 1)[0] + '/photo/'
             photo_split = self.model.objects.filter(CountIndex=pk).values()[0]['PhotoLink'].split(';')
             for photo in photo_split:
                 photo_list.append(root_url + photo)
@@ -1813,7 +1827,7 @@ class AssetLoanRecordFormView(LoginRequiredMixin, PermissionRequiredMixin, gener
             eq.Status = 'Loaned'
             eq.LastModifyUser = str(request.user)
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
-            eq.AssetLoanedReturnDate = datetime.datetime.strptime(str(loan_start), '%Y-%m-%d') + relativedelta(months=6)
+            eq.AssetLoanedReturnDate = form.cleaned_data['LoanEndTime']
             eq.save()
             action_statement = 'Create AssetLoanRecord with: ' + str(request.POST.dict())
             make_log(request, action_statement)
@@ -1849,7 +1863,9 @@ class AssetLoanRecordDetailView(LoginRequiredMixin, PermissionRequiredMixin, gen
         context = super(AssetLoanRecordDetailView, self).get_context_data(**kwargs)
         pk = int(str(context['object']))
         photo_split = self.model.objects.filter(TicketNo=pk).values()[0]['PhotoLink'].split(';')
-        context['PhotoLink'] = photo_split
+        for photo in photo_split:
+            photo_list.append('photo/'+ photo)
+        context['PhotoLink'] = photo_list
         return context
 
 ''' Tooling Calibration Record '''
@@ -1913,8 +1929,8 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
             eq = EquipmentList.objects.get(EquipmentNo=eqno)
             eq.Status = 'Cali'
             eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
-            eq.NextCalibratedDate = (datetime.date.today() + relativedelta(years=+1)).strftime('%Y-%m-%d')
-            eq.PlanCalDate = (datetime.date.today() + relativedelta(years=+1) - relativedelta(months=1)).strftime('%Y-%m-%d')
+            eq.NextCalibratedDate = None
+            # eq.PlanCalDate = (datetime.date.today() + relativedelta(years=1) - relativedelta(months=1)).strftime('%Y-%m-%d')
             eq.LastModifyUser = str(request.user)
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.save()
@@ -1926,10 +1942,10 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
             tool_item.ActualCalibratedEndTime = request.POST.get('c-end-date')
             eq = EquipmentList.objects.get(EquipmentNo=tool_item.EquipmentNo)
             eq.Status = 'Cali'
-            eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
-            eq.NextCalibratedDate = (datetime.datetime.strptime(request.POST.get('c-end-date'), '%Y-%m-%d') + relativedelta(years=+1)).strftime('%Y-%m-%d')
-            NextCalibratedDate = datetime.datetime.strptime(request.POST.get('c-end-date'), '%Y-%m-%d') + relativedelta(years=+1)
-            eq.PlanCalDate = (NextCalibratedDate - relativedelta(months=1)).strftime('%Y-%m-%d')
+            # eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
+            # eq.NextCalibratedDate = (datetime.datetime.strptime(request.POST.get('c-end-date'), '%Y-%m-%d') + relativedelta(years=1)).strftime('%Y-%m-%d')
+            # NextCalibratedDate = datetime.datetime.strptime(request.POST.get('c-end-date'), '%Y-%m-%d') + relativedelta(years=1)
+            # eq.PlanCalDate = (NextCalibratedDate - relativedelta(months=1)).strftime('%Y-%m-%d')
             eq.LastModifyUser = str(request.user)
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.save()
@@ -1995,7 +2011,9 @@ class ToolingCalibrationRecordDetailView(LoginRequiredMixin, PermissionRequiredM
         context = super(ToolingCalibrationRecordDetailView, self).get_context_data(**kwargs)
         pk = int(str(context['object']))
         photo_split = self.model.objects.filter(TicketNo=pk).values()[0]['PhotoLink'].split(';')
-        context['PhotoLink'] = photo_split
+        for photo in photo_split:
+            photo_list.append('photo/'+ photo)
+        context['PhotoLink'] = photo_list
         return context
 
 ''' Non Stock Transaction Record '''
@@ -2079,7 +2097,9 @@ class NonStockTransactionRecordDetailView(LoginRequiredMixin, PermissionRequired
         context = super(NonStockTransactionRecordDetailView, self).get_context_data(**kwargs)
         pk = int(str(context['object']))
         photo_split = self.model.objects.filter(TicketNo=pk).values()[0]['PhotoLink'].split(';')
-        context['PhotoLink'] = photo_split
+        for photo in photo_split:
+            photo_list.append('photo/'+ photo)
+        context['PhotoLink'] = photo_list
         return context
 
 ''' General Transaction Record '''
@@ -2161,5 +2181,7 @@ class TransactionRecordDetailView(LoginRequiredMixin, PermissionRequiredMixin, g
         context = super(TransactionRecordDetailView, self).get_context_data(**kwargs)
         pk = int(str(context['object']))
         photo_split = self.model.objects.filter(TicketNo=pk).values()[0]['PhotoLink'].split(';')
-        context['PhotoLink'] = photo_split
+        for photo in photo_split:
+            photo_list.append('photo/'+ photo)
+        context['PhotoLink'] = photo_list
         return context

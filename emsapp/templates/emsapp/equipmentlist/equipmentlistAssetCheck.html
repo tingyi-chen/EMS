@@ -153,7 +153,6 @@ label {
                                         <tr>
                                             <th scope="col th-sm">AssetNo</th>
                                             <th scope="col th-sm">Location</th>
-                                            <th scope="col th-sm">Name</th>
                                             <th scope="col th-sm">EnName</th>
                                             <th scope="col th-sm">LoanStartTime</th>
                                             <th scope="col th-sm">LoanEndTime</th>
@@ -181,10 +180,9 @@ label {
                                     <tr>
                                         <td class="align-middle">{{ data.detail.AssetNo }}</td>
                                         <td class="align-middle">{{ data.detail.Location }}</td>
-                                        <td class="align-middle">{{ data.detail.Name }}</td>
                                         <td class="align-middle">{{ data.detail.EnName }}</td>
-                                        <td class="align-middle">{{ form.LoanStartTime|as_crispy_field }}</td>
-                                        <td class="align-middle">{{ form.LoanEndTime|as_crispy_field }}</td>
+                                        <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.LoanStartTime|as_crispy_field }}</td>
+                                        <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.LoanEndTime|as_crispy_field }}</td>
                                         <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.LoanVendor|as_crispy_field }}</td>
                                         <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.Borrower|as_crispy_field }}</td>
                                         <td class="align-middle {{ data.detail.EquipmentNo }}">{{ form.LoanReason|as_crispy_field }}</td>
@@ -214,8 +212,7 @@ label {
 <script type="text/javascript">
 $(document).ready(function () {
     $('select').prop('disabled', 'disabled');
-    $('input[name="LoanReason"]').prop('disabled', 'disabled');
-    $('input[type=number]').prop('disabled', 'disabled');
+    $('input[type="text"]').prop('disabled', 'disabled');
     $('#a-l-table').dataTable({
         'pagingType': 'simple_numbers'
     });
@@ -223,17 +220,20 @@ $(document).ready(function () {
 $('input[type=checkbox]').click(function(){
     var checkBoxID = $(this).attr('id')
     var loanStartTime = $(`.${checkBoxID}`).find('input[name="LoanStartTime"]')
+    var loanEndTime = $(`.${checkBoxID}`).find('input[name="LoanEndTime"]')
     var vendorSelect = $(`.${checkBoxID}`).find('select[name="LoanVendor"]')
     var borrowerSelect = $(`.${checkBoxID}`).find('select[name="Borrower"]')
     var loanReason = $(`.${checkBoxID}`).find('input[name="LoanReason"]')
     if ($(this).prop('checked')) {
         loanStartTime.prop('disabled', false);
+        loanEndTime.prop('disabled', false);
         vendorSelect.prop('disabled', false);
         borrowerSelect.prop('disabled', false);
         loanReason.prop('disabled', false);
     }
     else {
         loanStartTime.prop('disabled', 'disabled');
+        loanEndTime.prop('disabled', 'disabled');
         vendorSelect.prop('disabled', 'disabled');
         borrowerSelect.prop('disabled', 'disabled');
         loanReason.prop('disabled', 'disabled');

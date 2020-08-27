@@ -146,9 +146,13 @@
             <div class="col-md-4">
               <div class="card h-100">
                 <div class="card-body card-body-cascade text-center">
+                  {% if data.ns_space > 100 %}
+                  <h1 class="font-weight-bold py-5 mb-0 text-danger">{{ data.ns_space }} %</h1>
+                  {% else %}
                   <h1 class="font-weight-bold py-5 mb-0">{{ data.ns_space }} %</h1>
+                  {% endif %}
                   <p class="card-text mb-1">of total 500 sqm</p>
-                  <h5 class="font-weight-bold card-title mt-4">Space</h5>
+                  <h5 class="font-weight-bold card-title mt-4">Space UT</h5>
                 </div>
               </div>
             </div>
@@ -172,23 +176,23 @@
                   <h5 class="ml-auto mb-3 font-weight-bold">Reminder</h5>
                   <div class="px-3 table-responsive">
                     <table id="overview-n-table" class="table table-hover" width="100%">
-                      <thead class="text-white amber">
+                      <thead class="text-white amber text-center">
                         <tr>
-                          <th scope="col th-sm">NonStockNo</th>
                           <th scope="col th-sm">Date</th>
+                          <th scope="col th-sm">NonStockNo</th>
                         </tr>
                       </thead>
                       <tbody id="item-lists">
                       {% for nonstock in data.NonStock %}
-                      {% if nonstock.Date < 0 %}
-                      <tr class="amber lighten-4">
-                        <th scope="row">{{ nonstock.No }}</th>
-                        <td>{{ nonstock.Date }}</td>
+                      {% if nonstock.Date > 365 %}
+                      <tr class="amber lighten-4 text-center">
+                        <th scope="row">{{ nonstock.Date }}</th>
+                        <td>{{ nonstock.No }}</td>
                       </tr>
                       {% else %}
-                      <tr>
-                        <th scope="row">{{ nonstock.No }}</th>
-                        <td>{{ nonstock.Date }}</td>
+                      <tr class="text-center">
+                        <th scope="row">{{ nonstock.Date }}</th>
+                        <td>{{ nonstock.No }}</td>
                       </tr>
                       {% endif %}
                       {% endfor %}
@@ -256,7 +260,7 @@
   $('#ns-pie-chart').click(function(e) {
     var activePoints = nsPie.getElementsAtEvent(e);
     var query = nsPie.data.labels[activePoints[0]._index]
-    location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&toolNo=&ownerName=&location='+query+'&nonStockNo=&site=&type=NonS'
+    location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&teamGroup=&toolNo=&ownerName=&location='+query+'&equipmentGroup=&nonStockNo=&site=&type=NonS&toolingGroup='
     // => activePoints is an array of points on the canvas that are at the same position as the click event.
   });
   var lineConfig = {

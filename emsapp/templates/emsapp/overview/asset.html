@@ -163,23 +163,23 @@
                   <h5 class="ml-auto mb-3 font-weight-bold">Reminder</h5>
                   <div class="px-3 table-responsive">
                     <table id="overview-a-table" class="table table-hover" width="100%">
-                      <thead class="text-white deep-orange">
+                      <thead class="text-white deep-orange text-center">
                         <tr>
-                          <th scope="col th-sm">AssetNo</th>
                           <th scope="col th-sm">Date</th>
+                          <th scope="col th-sm">AssetNo</th>
                         </tr>
                       </thead>
                       <tbody id="item-lists">
                       {% for asset in data.Asset %}
                       {% if asset.Date < 0 %}
-                      <tr class="deep-orange lighten-4">
-                        <th scope="row">{{ asset.No }}</th>
-                        <td>{{ asset.Date }}</td>
+                      <tr class="deep-orange lighten-4 text-center">
+                        <th scope="row">{{ asset.Date }}</th>
+                        <td>{{ asset.No }}</td>
                       </tr>
                       {% else %}
-                      <tr>
-                        <th scope="row">{{ asset.No }}</th>
-                        <td>{{ asset.Date }}</td>
+                      <tr class="text-center">
+                        <th scope="row">{{ asset.Date }}</th>
+                        <td>{{ asset.No }}</td>
                       </tr>
                       {% endif %}
                       {% endfor %}
@@ -240,12 +240,7 @@
   $('#pie-chart').click(function(e) {
     var activePoints = myPie.getElementsAtEvent(e);
     var query = myPie.data.labels[activePoints[0]._index]
-    if (query == 'others') {
-      location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&toolNo=&ownerName=&location!='+query+'&nonStockNo=&site=&type=Asset'
-    }
-    else {
-      location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&toolNo=&ownerName=&location='+query+'&nonStockNo=&site=&type=Asset'
-    }
+      location.href = '/emsapp/equipmentlist/search/?assetNo=&enName=&status=&teamGroup=&toolNo=&ownerName=&location='+query+'&equipmentGroup=&nonStockNo=&site=&type=Asset&toolingGroup='
     // => activePoints is an array of points on the canvas that are at the same position as the click event.
   });
 	var lineConfig = {

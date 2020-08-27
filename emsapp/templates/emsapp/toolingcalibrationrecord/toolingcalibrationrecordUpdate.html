@@ -1,6 +1,7 @@
 {% extends '../base.html' %}
 
 {% load crispy_forms_tags %}
+{% load emsapp_extras %}
 
 {% block title %}Tooling Calibration Update{% endblock %}
 
@@ -8,7 +9,7 @@
 <div class="modal fade bd-example-modal-lg" id="t-update-modal" tabindex="-1" role="dialog" aria-labelledby="Update" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            <form id="t-update-form" method="post" novalidate>
+            <form id="t-update-form" method="post" novalidate enctype="multipart/form-data">
 
             {% comment %} csrf_token must be inside form {% endcomment %}
             {% csrf_token %} 
@@ -22,29 +23,29 @@
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group col-md-4 mb-0">
-                            {{ form.CalibratedTicketNo|as_crispy_field }}
-                            {{ form.Name|as_crispy_field }}
-                            {{ form.ProdVendor|as_crispy_field }}
-                            {{ form.CalibratedTicketCreateDate|as_crispy_field }}
-                            {{ form.LastDueDate|as_crispy_field }}
-                            {{ form.UnitPrice|as_crispy_field }}
+                            {{ form.CalibratedTicketNo|tabindex:1|as_crispy_field }}
+                            {{ form.Name|tabindex:4|as_crispy_field }}
+                            {{ form.ProdVendor|tabindex:7|as_crispy_field }}
+                            {{ form.CalibratedTicketCreateDate|tabindex:10|as_crispy_field }}
+                            {{ form.LastDueDate|tabindex:13|as_crispy_field }}
+                            {{ form.UnitPrice|tabindex:16|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-4 mb-0">
-                            {{ form.EquipmentNo|as_crispy_field }}
-                            {{ form.EnName|as_crispy_field }}
-                            {{ form.Location|as_crispy_field }}
-                            {{ form.CalibratedStartTime|as_crispy_field }}
-                            {{ form.NextDueDate|as_crispy_field }}
-                            {{ form.CalibratedCost|as_crispy_field }}
+                            {{ form.EquipmentNo|tabindex:2|as_crispy_field }}
+                            {{ form.EnName|tabindex:5|as_crispy_field }}
+                            {{ form.Location|tabindex:8|as_crispy_field }}
+                            {{ form.CalibratedStartTime|tabindex:11|as_crispy_field }}
+                            {{ form.NextDueDate|tabindex:14|as_crispy_field }}
+                            {{ form.CalibratedCost|tabindex:17|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-4 mb-0">
-                            {{ form.ToolingNo|as_crispy_field }}
-                            {{ form.ModuleNo|as_crispy_field }}
-                            {{ form.PhotoLink|as_crispy_field }}
+                            {{ form.ToolingNo|tabindex:3|as_crispy_field }}
+                            {{ form.ModuleNo|tabindex:6|as_crispy_field }}
+                            {{ form.PhotoLink|tabindex:9|as_crispy_field }}
                             {{ form.CaliVendor|as_crispy_field }}
-                            {{ form.CalibratedReport|as_crispy_field }}
-                            {{ form.ExpectedCalibratedEndTime|as_crispy_field }}
-                            {{ form.Comment|as_crispy_field }}
+                            {{ form.ExpectedCalibratedEndTime|tabindex:12|as_crispy_field }}
+                            {{ form.Comment|tabindex:15|as_crispy_field }}
+                            {{ form.CalibratedReport|tabindex:18|as_crispy_field }}
                         </div>
                     </div>
                 </div>
@@ -62,7 +63,9 @@
 {% block js%}
 <script>
 $(document).ready(function() {
-    $('#div_id_CalibratedReport').attr('style', 'height: 70px;');
+    $('#div_id_CalibratedReport a').attr('style', 'color: blue;');
+    $('#div_id_CalibratedReport input[name="CalibratedReport-clear"]').attr('style', 'display: none;');
+    $('#div_id_CalibratedReport label[for="CalibratedReport-clear_id"]').attr('style', 'display: none;');
     $('#t-update-modal').modal('show');
     $('#t-update-modal').on('hidden.bs.modal', function(e) {
         window.location.href = '/emsapp/toolingcalibrationrecord';

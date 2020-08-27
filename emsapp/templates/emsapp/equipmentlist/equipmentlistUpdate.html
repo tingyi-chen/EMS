@@ -60,15 +60,15 @@
                             <div class="mt-n4">
                             <span class="col-form-label p-0 font-weight-bold">Current Link</span>
                             {% for photo in photos %}
-                                <a class="blue-text font-weight-bold" href="/media/{{ photo }}" name="nonStockNo">{{ forloop.counter }}</a>
+                                <a class="blue-text font-weight-bold" href="/media/photo/{{ photo }}">{{ forloop.counter }}</a>
                             {% endfor %}
                             </div>
-                            {{ form.CreateUser|tabindex:24|as_crispy_field }}
-                            {{ form.CreateDate|tabindex:27|as_crispy_field }}
-                            {{ form.Height|tabindex:30|as_crispy_field }}
-                            {{ form.LimitFreezeQnty|tabindex:33|as_crispy_field }}
+                            {{ form.LimitFreezeQnty|tabindex:24|as_crispy_field }}
+                            {{ form.Height|tabindex:27|as_crispy_field }}
+                            {{ form.CreateUser|tabindex:30|as_crispy_field }}
+                            {{ form.CreateDate|tabindex:33|as_crispy_field }}
                             {{ form.Cost|tabindex:36|as_crispy_field }}
-                            {{ form.AssetLoanedReturnDate|tabindex:36|as_crispy_field }}
+                            {{ form.PlanCalDate|tabindex:39|as_crispy_field }}
                         </div>
                     </div>
                 </div>

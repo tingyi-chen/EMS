@@ -95,7 +95,6 @@ class AssetLoanRecordForm(forms.ModelForm):
         self.fields['Borrower'] = forms.ChoiceField(choices=borrower)
         self.fields['LoanVendor'] = forms.ChoiceField(choices=vendor)
         self.fields['LoanStartTime'].initial = datetime.date.today().strftime('%Y-%m-%d')
-        self.fields['LoanEndTime'].initial = (datetime.date.today() + relativedelta(months=6)).strftime('%Y-%m-%d')
         
 class NonStockTransactionRecordForm(forms.ModelForm):
     class Meta:
@@ -115,7 +114,8 @@ class NonStockTransactionRecordForm(forms.ModelForm):
         photo = kwargs.pop('photo', None)
         name = kwargs.pop('name', None)
         en_name = kwargs.pop('en_name', None)
-        kwargs['initial'] = {'NonStockTicketNo': ntno, 'EquipmentNo': eqno, 'NonStockSpace': nonstock_space, 'NonStockNo': nsno, 'PhotoLink': photo, 'Name': name, 'EnName': en_name}
+        trans_from = kwargs.pop('trans_from', None)
+        kwargs['initial'] = {'NonStockTicketNo': ntno, 'EquipmentNo': eqno, 'NonStockSpace': nonstock_space, 'NonStockNo': nsno, 'PhotoLink': photo, 'Name': name, 'EnName': en_name, 'TransactionFrom': trans_from}
         super(NonStockTransactionRecordForm, self).__init__(*args, **kwargs)
         trans_from = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
         trans_to = [(i['Location'], i['Location']) for i in Location.objects.values('Location').distinct()]
@@ -125,9 +125,10 @@ class NonStockTransactionRecordForm(forms.ModelForm):
         self.fields['PhotoLink'].widget.attrs['readonly'] = True
         self.fields['Name'].widget.attrs['readonly'] = True
         self.fields['EnName'].widget.attrs['readonly'] = True
+        self.fields['TransactionFrom'].widget.attrs['readonly'] = True
         self.fields['TicketCreateUser'].initial = user
         self.fields['TransactionReqUser'].initial = user
-        self.fields['TransactionFrom'] = forms.ChoiceField(choices=trans_from)
+        # self.fields['TransactionFrom'] = forms.ChoiceField(choices=trans_from)
         self.fields['TransactionTo'] = forms.ChoiceField(choices=trans_to)
         self.fields['TruckType'] = forms.ChoiceField(choices=truck_type)
         self.fields['NonStockSpace'].widget.attrs['readonly'] = True
@@ -146,8 +147,7 @@ class ToolingCalibrationRecordForm(forms.ModelForm):
         widgets = {
             'CalibratedTicketCreateDate': DatePickerInput(format='%Y-%m-%d'),
             'CalibratedStartTime': DatePickerInput(format='%Y-%m-%d'),
-            'CalibratedEndTime': DatePickerInput(format='%Y-%m-%d'),
-            'LastDueDate': DatePickerInput(format='%Y-%m-%d'),
+            'ExpectedCalibratedEndTime': DatePickerInput(format='%Y-%m-%d'),
             'NextDueDate': DatePickerInput(format='%Y-%m-%d'),
         }
     def __init__(self, *args, **kwargs):
@@ -163,8 +163,7 @@ class ToolingCalibrationRecordForm(forms.ModelForm):
         pr_vendor = kwargs.pop('pr_vendor', None)
         location = kwargs.pop('location', None)
         last_due_date = kwargs.pop('last_due_date', None)
-        next_due_date = kwargs.pop('next_due_date', None)
-        kwargs['initial'] = {'CalibratedTicketNo': tcno, 'EquipmentNo': eqno, 'ToolingNo': tlno, 'Name': name, 'EnName': en_name, 'ModuleNo': mdno, 'PhotoLink': photo, 'site': site, 'ProdVendor': pr_vendor, 'Location': location, 'LastDueDate': last_due_date, 'NextDueDate': next_due_date}
+        kwargs['initial'] = {'CalibratedTicketNo': tcno, 'EquipmentNo': eqno, 'ToolingNo': tlno, 'Name': name, 'EnName': en_name, 'ModuleNo': mdno, 'PhotoLink': photo, 'site': site, 'ProdVendor': pr_vendor, 'Location': location, 'LastDueDate': last_due_date}
         super(ToolingCalibrationRecordForm, self).__init__(*args, **kwargs)
         prod_vendor = [(i['ProdVendorName'], i['ProdVendorName']) for i in ProdVendor.objects.values('ProdVendorName').distinct()]
         cali_vendor = [(i['CaliVendorName'], i['CaliVendorName']) for i in CaliVendor.objects.values('CaliVendorName').distinct()]
@@ -174,6 +173,7 @@ class ToolingCalibrationRecordForm(forms.ModelForm):
         self.fields['Name'].widget.attrs['readonly'] = True
         self.fields['EnName'].widget.attrs['readonly'] = True
         self.fields['ProdVendor'].widget.attrs['readonly'] = True
+        self.fields['LastDueDate'].widget.attrs['readonly'] = True
         self.fields['PhotoLink'].widget = forms.TextInput(attrs={'readonly': True, 'required': False})
         self.fields['CaliVendor'] = forms.ChoiceField(choices=cali_vendor)
         self.fields['CaliVendor'].label = "CaliVendor"
@@ -183,6 +183,7 @@ class ToolingCalibrationRecordForm(forms.ModelForm):
         self.fields['CalibratedTicketCreateDate'].initial = datetime.date.today().strftime('%Y-%m-%d')
         self.fields['CalibratedStartTime'].initial = datetime.date.today().strftime('%Y-%m-%d')
         self.fields['ExpectedCalibratedEndTime'].initial = (datetime.date.today() + relativedelta(days=14)).strftime('%Y-%m-%d')
+        
 
 class TransactionRecordForm(forms.ModelForm):
     class Meta:

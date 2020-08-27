@@ -22,7 +22,7 @@ urlpatterns = [
     url(r'^accounts/login/$', views.LoginView.as_view(), name='login'),
     url(r'^accounts/logout/$', views.LogoutView.as_view(), name='logout'),
 
-    url(r'^home/info/$', views.HomeView.info, name='homeInfo'),
+    # url(r'^home/info/$', views.HomeView.info, name='homeInfo'),
     url(r'^home/asset/$', views.HomeView.asset, name='homeAsset'),
     url(r'^home/tool/$', views.HomeView.tool, name='homeTool'),
     url(r'^home/nonstock/$', views.HomeView.nonstock, name='homeNonStock'),

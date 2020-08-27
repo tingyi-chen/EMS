@@ -152,11 +152,9 @@ label {
                                         <thead class="blue-grey darken-2 text-white">
                                             <tr>
                                                 <th scope="col th-sm">T. No</th>
-                                                <th scope="col th-sm">E. Group</th>
                                                 <th scope="col th-sm">T. Group</th>
                                                 <th scope="col th-sm">Name</th>
                                                 <th scope="col th-sm">Location</th>
-                                                <th scope="col th-sm">NextCalibratedDate</th>
                                                 <th scope="col th-sm">DeltaDate</th>
                                                 <th scope="col th-sm">Vendor</th>
                                                 <th scope="col th-sm">Check</th>
@@ -166,11 +164,9 @@ label {
                                             <col style="width: 10%;">
                                             <col style="width: 15%;">
                                             <col style="width: 15%;">
-                                            <col style="width: 10%;">
-                                            <col style="width: 10%;">
                                             <col style="width: 15%;">
-                                            <col style="width: 5%;">
                                             <col style="width: 15%;">
+                                            <col style="width: 20%;">
                                             <col style="width: 5%;">
                                         </colgroup>
                                         <tbody id="item-lists">
@@ -178,11 +174,9 @@ label {
                                         {% for data in data_list %}
                                         <tr>
                                             <td class="align-middle">{{ data.detail.ToolingNo }}</td>
-                                            <td class="align-middle">{{ data.detail.EquipmentGroup }}</td>
                                             <td class="align-middle">{{ data.detail.ToolingGroup }}</td>
                                             <td class="align-middle">{{ data.detail.Name }}</td>
                                             <td class="align-middle">{{ data.detail.Location }}</td>
-                                            <td class="align-middle">{{ data.detail.NextCalibratedDate }}</td>
                                             <td class="align-middle">{{ data.delta }}</td>
                                             <td class="align-middle {{ data.detail.EquipmentNo }}" name="vendor">{{ form.CaliVendor|as_crispy_field }}</td>
                                             {% comment %} <td class="align-middle {{ data.detail.EquipmentNo }}" name="location">{{ form.Location|as_crispy_field }}</td> {% endcomment %}

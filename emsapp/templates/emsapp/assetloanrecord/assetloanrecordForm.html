@@ -9,7 +9,7 @@
 <div class="modal fade bd-example-modal-lg" id="a-loan-modal" tabindex="-1" role="dialog" aria-labelledby="Update" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            <form id="a-post-form" method="post" novalidate>
+            <form id="a-post-form" method="post" novalidate enctype="multipart/form-data">
             {% comment %} csrf_token must be inside form {% endcomment %}
             {% csrf_token %} 
                 <div class="modal-header default-color">
@@ -31,12 +31,12 @@
                             {{ form.EquipmentNo|tabindex:2|as_crispy_field }}
                             {{ form.EnName|tabindex:5|as_crispy_field }}
                             {{ form.LoanStartTime|tabindex:8|as_crispy_field }}
-                            {{ form.Borrower|tabindex:6|as_crispy_field }}
+                            {{ form.Borrower|tabindex:11|as_crispy_field }}
                             {{ form.Value|tabindex:14|as_crispy_field }}
                         </div>
                         <div class="form-group col-md-4 mb-0">
                             {{ form.AssetNo|tabindex:3|as_crispy_field }}
-                            {{ form.PhotoLink|tabindex:11|as_crispy_field }}
+                            {{ form.PhotoLink|tabindex:6|as_crispy_field }}
                             {{ form.LoanEndTime|tabindex:9|as_crispy_field }}
                             {{ form.AssetLoanDocument|tabindex:12|as_crispy_field }}
                             {{ form.IsLongTermEvent|tabindex:15|as_crispy_field }}
@@ -57,7 +57,6 @@
 {% block js%}
 <script>
 $(document).ready(function() {
-    $('#div_id_AssetLoanDocument').attr('style', 'height: 70px;');
     $('#div_id_IsLongTermEvent').attr('style', 'height: 20px;');
     $('#a-loan-modal').modal('show');
     $('#a-loan-modal').on('hidden.bs.modal', function(e) {
