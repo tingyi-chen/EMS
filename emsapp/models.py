@@ -13,7 +13,7 @@ class EquipmentList(models.Model):
     MaximoNo = models.CharField(max_length=255, blank=True, default='', validators=[RegexValidator(r'^[A-Za-z0-9- ]+$')])
     ToolingNo = models.CharField(max_length=255,blank=True, default='', validators=[RegexValidator(r'^[A-Za-z0-9- ]+$')])
     ModuleNo = models.CharField(max_length=255, blank=True, default='', validators=[RegexValidator(r'^[A-Za-z0-9\"\/\_\-\/ ]+$')])
-    Name = models.CharField(max_length=255, blank=True, default='')
+    Name = models.CharField(max_length=4000, blank=True, default='')
     EnName = models.CharField(max_length=4000, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
     SerialNumber = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9- ]+$')])
     EquipmentOwnerID = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9 ]+$')])
@@ -37,8 +37,8 @@ class EquipmentList(models.Model):
     ChDescription = models.CharField(max_length=4000, blank=True, default='')
     EnDescription = models.CharField(max_length=4000, blank=True, default='')
     LimitFreezeQnty = models.IntegerField(default=1, validators=[RegexValidator(r'^[0-9]+$')])
-    Specification = models.CharField(max_length=255, blank=True, default='')
-    Limitations = models.CharField(max_length=255, blank=True, default='')
+    Specification = models.CharField(max_length=4000, blank=True, default='')
+    Limitations = models.CharField(max_length=4000, blank=True, default='')
 
     LastCalibratedDate = models.DateField(null=True, blank=True)
     NextCalibratedDate = models.DateField(null=True, blank=True)
@@ -63,11 +63,11 @@ class EquipmentList(models.Model):
 class AssetLoanRecord(models.Model):
     TicketNo = models.AutoField(primary_key=True)
     AssetLoanTicketNo = models.CharField(max_length=255, default='')
-    Name = models.CharField(max_length=255, blank=True, default='')
-    EnName = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
+    Name = models.CharField(max_length=4000, blank=True, default='')
+    EnName = models.CharField(max_length=4000, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
     EquipmentNo = models.CharField(max_length=255, default='')
     AssetNo = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9- ]+$')])
-    LoanReason = models.CharField(max_length=255, default='')
+    LoanReason = models.CharField(max_length=4000, default='')
     LoanStartTime = models.DateField(null=True, blank=True, default=None)
     LoanEndTime = models.DateField(null=True, blank=True, default=None)
     IsLongTermEvent = models.BooleanField(default=False)
@@ -87,8 +87,8 @@ class NonStockTransactionRecord(models.Model):
 
     TicketNo = models.AutoField(primary_key=True)
     NonStockTicketNo = models.CharField(max_length=255, default='')
-    Name = models.CharField(max_length=255, blank=True, default='')
-    EnName = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
+    Name = models.CharField(max_length=4000, blank=True, default='')
+    EnName = models.CharField(max_length=4000, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
     NonStockNo = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[a-zA-Z0-9- ]+$')])
     EquipmentNo = models.CharField(max_length=255, default='')
     TicketCreateTime = models.DateField(null=True, blank=True, default=None)
@@ -101,8 +101,8 @@ class NonStockTransactionRecord(models.Model):
     TruckType = models.CharField(max_length=255, default='')
     PhotoLink = models.CharField(max_length=255, blank=True, default='')
     # TicketRemark = models.CharField(max_length=255, null=True)
-    Description = models.CharField(max_length=255, null=True, blank=True, default='')
-    OtherDemand = models.CharField(max_length=255, null=True, blank=True, default='')
+    Description = models.CharField(max_length=4000, null=True, blank=True, default='')
+    OtherDemand = models.CharField(max_length=4000, null=True, blank=True, default='')
     # Height/Width/Length/Weight relation?
     Deleted = models.BooleanField(default=False)
 
@@ -116,8 +116,8 @@ class ToolingCalibrationRecord(models.Model):
     CalibratedTicketNo = models.CharField(max_length=255, default='')
     EquipmentNo = models.CharField(max_length=255, default='')
     ToolingNo = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9- ]+$')])
-    Name = models.CharField(max_length=255, blank=True, default='')
-    EnName = models.CharField(max_length=255, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
+    Name = models.CharField(max_length=4000, blank=True, default='')
+    EnName = models.CharField(max_length=4000, default='', validators=[RegexValidator(r'^[A-Za-z0-9-\*\(\)\u3000\u3400-\u4DBF\u4E00-\u9FFF ]+$')])
     ModuleNo = models.CharField(max_length=255, null=True, blank=True, default='')
     Location = models.CharField(max_length=255, default='')
     ProdVendor = models.CharField(max_length=255, default='')
@@ -132,7 +132,7 @@ class ToolingCalibrationRecord(models.Model):
     CalibratedCost = models.FloatField(null=True, blank=True, default=0)
     ExpectedCalibratedEndTime = models.DateField(null=True, blank=True, default=None)
     ActualCalibratedEndTime = models.DateField(null=True, blank=True, default=None)
-    Comment = models.CharField(max_length=255, null=True, blank=True, default='')
+    Comment = models.CharField(max_length=4000, null=True, blank=True, default='')
     
     MQStartTime = models.DateField(null=True, blank=True, default=None)
     MQEndTime = models.DateField(null=True, blank=True, default=None)
@@ -158,7 +158,7 @@ class TransactionRecord(models.Model):
     PhotoLink = models.CharField(max_length=255, blank=True, default='')
     # LastTransactionDate = models.DateTimeField(null=True)   # Update to Main List
     # TicketRemark = models.CharField(max_length=255, null=True)
-    Description = models.CharField(max_length=255, default='')
+    Description = models.CharField(max_length=4000, default='')
     # Height/Width/Length/Weight relation?
     Deleted = models.BooleanField(default=False)
 
@@ -244,7 +244,7 @@ class AssetQnty(models.Model):
     Year = models.CharField(max_length=255, default=None)
     Month = models.CharField(max_length=255, default=None)
     Day = models.CharField(max_length=255, default=None)
-    Quantity = models.CharField(max_length=4000, default=None)
+    Quantity = models.IntegerField(default=None)
 
     def __str__(self):
         return str(self.Quantity)
@@ -253,7 +253,7 @@ class ToolQnty(models.Model):
     Year = models.CharField(max_length=255, default=None)
     Month = models.CharField(max_length=255, default=None)
     Day = models.CharField(max_length=255, default=None)
-    Quantity = models.CharField(max_length=4000, default=None)
+    Quantity = models.IntegerField(default=None)
     
     def __str__(self):
         return str(self.Quantity)
@@ -262,7 +262,7 @@ class NonStockQnty(models.Model):
     Year = models.CharField(max_length=255, default=None)
     Month = models.CharField(max_length=255, default=None)
     Day = models.CharField(max_length=255, default=None)
-    Quantity = models.CharField(max_length=4000, default=None)
+    Quantity = models.IntegerField(default=None)
     
     def __str__(self):
         return str(self.Quantity)
