@@ -99,7 +99,7 @@
                           <div class="dropdown-menu dropdown-menu-right dropdown-default"
                           aria-labelledby="navbarDropdownMenuLink-333">
                           {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
-                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            <a class="dropdown-item" href="/admin" target="_blank">Admin Setting</a>
                             {% endif %}
                           <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                           </div>
@@ -266,12 +266,12 @@
   var lineConfig = {
 		type: 'line',
 		data: {
-			labels: {{ labels.n_lineX|safe }},
+			labels: {{ current_label|safe }},
 			datasets: [{
 				label: 'Filled',
 				backgroundColor: ['#ffa000'],
 				borderColor: ['#ffa000'],
-				data: {{ data.n_lineY }},
+				data: {{ current_data }},
 				fill: true,
 			}]
 		},

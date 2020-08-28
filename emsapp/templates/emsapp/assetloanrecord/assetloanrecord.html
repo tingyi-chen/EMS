@@ -109,7 +109,7 @@
                             <div class="dropdown-menu dropdown-menu-right dropdown-default"
                             aria-labelledby="navbarDropdownMenuLink-333">
                             {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
-                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            <a class="dropdown-item" href="/admin" target="_blank">Admin Setting</a>
                             {% endif %}
                             <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                             </div>
@@ -256,7 +256,7 @@
                                             <i class="fas fa-file-alt"></i>
                                         </a>
                                     </td>
-                                    {% if perms.emsapp.delete_equipmentlist and perms.emsapp.change_equipmentlist and perms.emsapp.add_equipmentlist %}
+                                    {% if perms.emsapp.delete_assetloanrecord and perms.emsapp.change_assetloanrecord %}
                                     {% comment %} url: 127.0.0.1:8000/equipment.CountIndex ; 'emsapp:delete': urls.py app_name = 'emsapp', name = 'delete', {% endcomment %}
                                     <td class="align-middle">
                                         <a href="{% url 'emsapp:assetLoanUpdate' q.TicketNo %}">

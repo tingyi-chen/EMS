@@ -643,7 +643,7 @@ def search(request):
 @permission_required(all_admin_tuple, raise_exception=True)
 def xlsx_export(request):
     redirect_url = '/emsapp/' + request.path.split('/')[2]
-    export_name = request.path.split('/')[2] + '_' + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_M_%S')) + '_export.xlsx'
+    export_name = request.path.split('/')[2] + '_' + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_M_%S')) + '.xlsx'
     model = model_list[request.path.split('/')[2]]
     df = pd.DataFrame()
     qs = model.objects.all()
@@ -948,7 +948,7 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                                 eq.Status = 'Cali'
                                 eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
                                 eq.NextCalibratedDate = None
-                                # eq.PlanCalDate = (datetime.date.today() + relativedelta(years=1) - relativedelta(months=1)).strftime('%Y-%m-%d')
+                                eq.PlanCalDate = None
                                 eq.LastModifyUser = str(request.user)
                                 eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
                                 eq.save()
@@ -956,7 +956,7 @@ class ToolCheckView(LoginRequiredMixin, PermissionRequiredMixin, generic.FormVie
                                 row_cells[0].text = eqno
                                 row_cells[1].text = EquipmentList.objects.filter(EquipmentNo=eqno).values()[0]['ChDescription']
                                 document.add_page_break()
-                                export_name = 'calilist' + '_' + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
+                                export_name = 'calilist' + '_' + str(datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + '.docx')
                                 document.save('media\\export' + export_name)
                                 action_statement = 'Create ToolingCalibrationRecord with: ' + str(post.dict())
                                 make_log(request, action_statement)
@@ -1314,12 +1314,12 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
         
         labels = {
             'Location': [],
-            'a_lineX': [],
+            'a_lineX': {},
         }
         data = {
             'a_amount': a_amount,
             'a_location': [],
-            'a_lineY': [],
+            'a_lineY': {},
             'Asset': [],
         }
 
@@ -1338,8 +1338,20 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             asset_qnty.save()
 
         for each in AssetQnty.objects.all().values():
-            labels['a_lineX'].append(each['Year']+each['Month']+each['Day'])
-            data['a_lineY'].append(int(each['Quantity']))
+            if each['Year'] not in labels['a_lineX']:
+                labels['a_lineX'][each['Year']] = {each['Month']: [each['Day']]}
+                data['a_lineY'][each['Year']] = {each['Month']: [int(each['Quantity'])]}
+            elif each['Month'] not in labels['a_lineX'][each['Year']]:
+                labels['a_lineX'][each['Year']][each['Month']] = [each['Day']]
+                data['a_lineY'][each['Year']][each['Month']] = [int(each['Quantity'])]
+            elif each['Day'] not in labels['a_lineX'][each['Year']][each['Month']]:
+                labels['a_lineX'][each['Year']][each['Month']].append(each['Day'])
+                data['a_lineY'][each['Year']][each['Month']].append(int(each['Quantity']))
+            else:
+                pass
+
+        current_label = labels['a_lineX'][year][month]
+        current_data = data['a_lineY'][year][month]
         # if year not in date_dict['Asset']:
         #     print('1')
         #     date_dict['Asset'][year] = {month: [day]}
@@ -1373,7 +1385,9 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             self,
             'emsapp/overview/asset.html', {
                 'labels': labels,
-                'data': data
+                'data': data,
+                'current_label': current_label,
+                'current_data': current_data
             }
         )
 
@@ -1382,12 +1396,12 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
         t_amount = EquipmentList.objects.filter(~Q(Deleted=True)).filter(EquipmentType__icontains='Tool').all().count()
         labels = {
             'Location': ['Cali'],
-            't_lineX': [],
+            't_lineX': {},
         }
         data = {
             't_amount': t_amount,
             't_location': [EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(Q(Status='Cali')|Q(Status='MQ')).count()],
-            't_lineY': [],
+            't_lineY': {},
             'Tool': [],
         }
         year = datetime.date.today().strftime('%Y-%b-%d').split('-')[0]
@@ -1402,9 +1416,23 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
                 Quantity=t_amount
             )
             tool_qnty.save()
+
         for each in ToolQnty.objects.all().values():
-            labels['t_lineX'].append(each['Year']+each['Month']+each['Day'])
-            data['t_lineY'].append(int(each['Quantity']))
+            if each['Year'] not in labels['t_lineX']:
+                labels['t_lineX'][each['Year']] = {each['Month']: [each['Day']]}
+                data['t_lineY'][each['Year']] = {each['Month']: [int(each['Quantity'])]}
+            elif each['Month'] not in labels['t_lineX'][each['Year']]:
+                labels['t_lineX'][each['Year']][each['Month']] = [each['Day']]
+                data['t_lineY'][each['Year']][each['Month']] = [int(each['Quantity'])]
+            elif each['Day'] not in labels['t_lineX'][each['Year']][each['Month']]:
+                labels['t_lineX'][each['Year']][each['Month']].append(each['Day'])
+                data['t_lineY'][each['Year']][each['Month']].append(int(each['Quantity']))
+            else:
+                pass
+
+        current_label = labels['t_lineX'][year][month]
+        current_data = data['t_lineY'][year][month]
+
         tool_list = EquipmentList.objects.filter(EquipmentType__icontains='Tool').filter(Status='Active').filter(~Q(Deleted=True)).order_by('NextCalibratedDate').values()
         for tool in tool_list:
             next_date = tool['PlanCalDate']
@@ -1423,7 +1451,9 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             self,
             'emsapp/overview/tool.html', {
                 'labels': labels,
-                'data': data
+                'data': data,
+                'current_label': current_label,
+                'current_data': current_data
             }
         )
 
@@ -1440,12 +1470,12 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
         
         labels = {
             'Location': [],
-            'n_lineX': [],
+            'n_lineX': {},
         }
         data = {
             'n_amount': n_amount,
             'n_location': [],
-            'n_lineY': [],
+            'n_lineY': {},
             'NonStock': [],
             'ns_space': n_space_percent,
         }
@@ -1462,8 +1492,21 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             )
             nons_qnty.save()
         for each in NonStockQnty.objects.all().values():
-            labels['n_lineX'].append(each['Year']+each['Month']+each['Day'])
-            data['n_lineY'].append(int(each['Quantity']))
+            if each['Year'] not in labels['n_lineX']:
+                labels['n_lineX'][each['Year']] = {each['Month']: [each['Day']]}
+                data['n_lineY'][each['Year']] = {each['Month']: [int(each['Quantity'])]}
+            elif each['Month'] not in labels['n_lineX'][each['Year']]:
+                labels['n_lineX'][each['Year']][each['Month']] = [each['Day']]
+                data['n_lineY'][each['Year']][each['Month']] = [int(each['Quantity'])]
+            elif each['Day'] not in labels['n_lineX'][each['Year']][each['Month']]:
+                labels['n_lineX'][each['Year']][each['Month']].append(each['Day'])
+                data['n_lineY'][each['Year']][each['Month']].append(int(each['Quantity']))
+            else:
+                pass
+
+        current_label = labels['n_lineX'][year][month]
+        current_data = data['n_lineY'][year][month]
+
         ns_list = EquipmentList.objects.filter(EquipmentType__icontains='NonS').filter(Status='InActive').filter(~Q(Deleted=True)).order_by('LastNonStockShipDate').values()
         for ns in ns_list:
             date = ns['LastNonStockShipDate']
@@ -1482,7 +1525,9 @@ class HomeView(LoginRequiredMixin, PermissionRequiredMixin, generic.View):
             self,
             'emsapp/overview/nonstock.html', {
                 'labels': labels,
-                'data': data
+                'data': data,
+                'current_label': current_label,
+                'current_data': current_data
             }
         )
 
@@ -1930,7 +1975,7 @@ class ToolingCalibrationRecordFormView(LoginRequiredMixin, PermissionRequiredMix
             eq.Status = 'Cali'
             eq.LastCalibratedDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.NextCalibratedDate = None
-            # eq.PlanCalDate = (datetime.date.today() + relativedelta(years=1) - relativedelta(months=1)).strftime('%Y-%m-%d')
+            eq.PlanCalDate = None
             eq.LastModifyUser = str(request.user)
             eq.LastModifyDate = datetime.date.today().strftime('%Y-%m-%d')
             eq.save()

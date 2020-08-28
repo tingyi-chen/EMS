@@ -101,7 +101,7 @@
                             <div class="dropdown-menu dropdown-menu-right dropdown-default"
                             aria-labelledby="navbarDropdownMenuLink-333">
                             {% if perms.emsapp.add_user and perms.emsapp.change_user and perms.emsapp.delete_user and perms.emsapp.view_user %}
-                            <a class="dropdown-item" href="/admin">Admin Setting</a>
+                            <a class="dropdown-item" href="/admin" target="_blank">Admin Setting</a>
                             {% endif %}
                             <a class="dropdown-item" href="/emsapp/accounts/logout" onclick="return confirm('Are you sure to Log out?')">Logout</a>
                             </div>
@@ -169,7 +169,9 @@
                                     <th scope="col th-sm">TruckType</th>
                                     <th scope="col th-sm">TransReqUser</th>
                                     <th scope="col th-sm">Det.</th>
+                                    {% if perms.emsapp.delete_nonstocktransactionrecord and perms.emsapp.change_nonstocktransactionrecord %}
                                     <th scope="col th-sm">Rec.</th>
+                                    {% endif %}
                                 </tr>
                                 </thead>
                                 <tbody id="item-lists">
@@ -208,11 +210,13 @@
                                             <i class="fas fa-file-alt"></i>
                                         </a>
                                     </td>
+                                    {% if perms.emsapp.delete_nonstocktransactionrecord and perms.emsapp.change_nonstocktransactionrecord %}
                                     <td class="align-middle">
                                         <a href="{% url 'emsapp:nonStockRecovery' q.TicketNo %}" onclick="return confirm('Are you sure to recover this row?')">
                                             <i class="fas fa-redo-alt"></i>
                                         </a>
                                     </td>
+                                    {% endif %}
                                 </tr>
                                 {% endfor %}
                                 {% endif %}
